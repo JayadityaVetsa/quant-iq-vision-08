@@ -13,19 +13,19 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
     const data = [
       {
         name: "Your Portfolio",
-        value: results.currentPortfolio[metric],
+        value: results.currentPortfolio[metric] as number,
         type: "current",
         color: "#007bff"
       },
       {
         name: "Max Sharpe",
-        value: results.maxSharpePortfolio[metric],
+        value: results.maxSharpePortfolio[metric] as number,
         type: "optimal",
         color: "#d9534f"
       },
       {
         name: "Min Volatility",
-        value: results.minVolatilityPortfolio[metric],
+        value: results.minVolatilityPortfolio[metric] as number,
         type: "conservative",
         color: "#5cb85c"
       }
@@ -33,19 +33,21 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
 
     // Add benchmarks
     Object.entries(results.benchmarkResults).forEach(([name, metrics]) => {
-      data.push({
-        name,
-        value: metrics[metric],
-        type: "benchmark",
-        color: "#6c757d"
-      });
+      if (typeof metrics[metric] === 'number') {
+        data.push({
+          name,
+          value: metrics[metric] as number,
+          type: "benchmark",
+          color: "#6c757d"
+        });
+      }
     });
 
     return data.sort((a, b) => {
       if (metric === 'volatility' || metric === 'maxDrawdown') {
-        return (a.value as number) - (b.value as number); // Lower is better
+        return a.value - b.value; // Lower is better
       }
-      return (b.value as number) - (a.value as number); // Higher is better
+      return b.value - a.value; // Higher is better
     });
   };
 
@@ -65,12 +67,12 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
       <Card>
         <CardHeader>
           <CardTitle>Risk Index Comparison</CardTitle>
-          <CardDescription>Higher scores indicate better risk-adjusted performance</CardDescription>
+          <CardDescription>Higher scores indicate better risk-adjusted performance (0-100 scale)</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={riskIndexData} layout="horizontal">
+              <BarChart data={riskIndexData} layout="horizontal" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <XAxis type="number" axisLine={false} tickLine={false} />
                 <YAxis 
                   type="category" 
@@ -102,7 +104,7 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sharpeData} layout="horizontal">
+              <BarChart data={sharpeData} layout="horizontal" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <XAxis type="number" axisLine={false} tickLine={false} />
                 <YAxis 
                   type="category" 
@@ -134,7 +136,7 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volatilityData} layout="horizontal">
+              <BarChart data={volatilityData} layout="horizontal" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <XAxis type="number" axisLine={false} tickLine={false} />
                 <YAxis 
                   type="category" 

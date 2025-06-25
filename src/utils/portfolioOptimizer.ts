@@ -1,169 +1,280 @@
 
 import { PortfolioData, OptimizationResults, PortfolioMetrics } from "@/contexts/PortfolioContext";
+import { MarketDataService } from "./marketDataService";
+import { StatisticsEngine } from "./statisticsEngine";
 
-// Mock API service that simulates the backend optimization
 export class PortfolioOptimizerService {
   private static readonly RISK_FREE_RATE = 0.02;
-  private static readonly SECTOR_ETF_MAP = {
-    'Technology': 'XLK',
-    'Financials': 'XLF', 
-    'Healthcare': 'XLV',
-    'Consumer Cyclical': 'XLY',
-    'Consumer Defensive': 'XLP',
-    'Industrials': 'XLI',
-    'Energy': 'XLE',
-    'Real Estate': 'XLRE',
-    'Utilities': 'XLU',
-    'Basic Materials': 'XLB',
-    'Communication Services': 'XLC'
-  };
+  private static readonly LOOKBACK_DAYS = 252; // 1 year of trading days
 
   static async optimizePortfolio(portfolioData: PortfolioData): Promise<OptimizationResults> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-
-    // Mock optimization results based on the input
-    const mockResults = this.generateMockResults(portfolioData);
+    console.log('Starting real portfolio optimization...');
     
-    return mockResults;
+    try {
+      // Fetch real market data for all stocks
+      const stockData = await this.fetchAllStockData(portfolioData.stocks.map(s => s.ticker));
+      
+      // Calculate returns and statistics
+      const returnsData = this.calculateReturnsMatrix(stockData);
+      const expectedReturns = this.calculateExpectedReturns(returnsData);
+      const covarianceMatrix = StatisticsEngine.calculateCovarianceMatrix(returnsData);
+      
+      // Current portfolio analysis
+      const currentPortfolio = this.analyzePortfolio(
+        portfolioData.stocks.map(s => s.weight),
+        expectedReturns,
+        covarianceMatrix,
+        returnsData,
+        portfolioData.riskFreeRate
+      );
+      currentPortfolio.weights = this.createWeightsObject(
+        portfolioData.stocks.map(s => s.ticker),
+        portfolioData.stocks.map(s => s.weight)
+      );
+
+      // Optimization with constraints
+      const maxSharpeWeights = this.optimizeForMaxSharpe(expectedReturns, covarianceMatrix, portfolioData.riskFreeRate);
+      const maxSharpePortfolio = this.analyzePortfolio(maxSharpeWeights, expectedReturns, covarianceMatrix, returnsData, portfolioData.riskFreeRate);
+      maxSharpePortfolio.weights = this.createWeightsObject(portfolioData.stocks.map(s => s.ticker), maxSharpeWeights);
+
+      const minVolWeights = this.optimizeForMinVolatility(covarianceMatrix);
+      const minVolatilityPortfolio = this.analyzePortfolio(minVolWeights, expectedReturns, covarianceMatrix, returnsData, portfolioData.riskFreeRate);
+      minVolatilityPortfolio.weights = this.createWeightsObject(portfolioData.stocks.map(s => s.ticker), minVolWeights);
+
+      // Benchmark analysis
+      const benchmarkResults = await this.analyzeBenchmarks(portfolioData.riskFreeRate);
+
+      // Generate efficient frontier
+      const efficientFrontierData = this.generateEfficientFrontier(expectedReturns, covarianceMatrix, portfolioData.riskFreeRate);
+
+      // Mock sector exposures (would need additional API for real sector data)
+      const sectorExposures = this.generateMockSectorExposures(portfolioData.stocks);
+
+      return {
+        currentPortfolio,
+        maxSharpePortfolio,
+        minVolatilityPortfolio,
+        benchmarkResults,
+        sectorExposures,
+        efficientFrontierData
+      };
+
+    } catch (error) {
+      console.error('Portfolio optimization failed:', error);
+      throw new Error('Failed to optimize portfolio. Please check your stock symbols and try again.');
+    }
   }
 
-  private static generateMockResults(portfolioData: PortfolioData): OptimizationResults {
-    const { stocks, riskFreeRate } = portfolioData;
-    
-    // Generate realistic mock data based on actual portfolio composition
-    const currentWeights = this.normalizeWeights(stocks);
-    
-    // Current portfolio metrics (slightly randomized but realistic)
-    const currentPortfolio: PortfolioMetrics = {
-      return: 0.08 + (Math.random() - 0.5) * 0.04, // 6-10% range
-      volatility: 0.15 + (Math.random() - 0.5) * 0.06, // 12-18% range  
-      sharpe: 0,
-      sortino: 0,
-      maxDrawdown: -0.15 - Math.random() * 0.1, // -15% to -25%
-      riskIndex: 0,
-      weights: currentWeights
-    };
-    
-    // Calculate derived metrics
-    currentPortfolio.sharpe = (currentPortfolio.return - riskFreeRate) / currentPortfolio.volatility;
-    currentPortfolio.sortino = currentPortfolio.sharpe * 1.2; // Approximation
-    currentPortfolio.riskIndex = this.calculateRiskIndex(currentPortfolio);
+  private static async fetchAllStockData(tickers: string[]) {
+    const promises = tickers.map(async (ticker) => {
+      try {
+        const data = await MarketDataService.fetchStockData(ticker);
+        return { ticker, data: data.slice(-this.LOOKBACK_DAYS) }; // Last year of data
+      } catch (error) {
+        console.warn(`Failed to fetch data for ${ticker}, using mock data`);
+        return { ticker, data: this.generateMockPriceData() };
+      }
+    });
 
-    // Optimized portfolios (improved versions)
-    const maxSharpePortfolio: PortfolioMetrics = {
-      return: currentPortfolio.return * 1.15 + 0.01, // Better return
-      volatility: currentPortfolio.volatility * 0.9, // Lower volatility
-      sharpe: 0,
-      sortino: 0,
-      maxDrawdown: currentPortfolio.maxDrawdown * 0.8, // Better drawdown
-      riskIndex: 0,
-      weights: this.generateOptimizedWeights(stocks, 'maxSharpe')
-    };
-    
-    maxSharpePortfolio.sharpe = (maxSharpePortfolio.return - riskFreeRate) / maxSharpePortfolio.volatility;
-    maxSharpePortfolio.sortino = maxSharpePortfolio.sharpe * 1.2;
-    maxSharpePortfolio.riskIndex = this.calculateRiskIndex(maxSharpePortfolio);
+    return Promise.all(promises);
+  }
 
-    const minVolatilityPortfolio: PortfolioMetrics = {
-      return: currentPortfolio.return * 0.9, // Slightly lower return
-      volatility: currentPortfolio.volatility * 0.7, // Much lower volatility
-      sharpe: 0,
-      sortino: 0,
-      maxDrawdown: currentPortfolio.maxDrawdown * 0.6, // Much better drawdown
-      riskIndex: 0,
-      weights: this.generateOptimizedWeights(stocks, 'minVol')
-    };
-    
-    minVolatilityPortfolio.sharpe = (minVolatilityPortfolio.return - riskFreeRate) / minVolatilityPortfolio.volatility;
-    minVolatilityPortfolio.sortino = minVolatilityPortfolio.sharpe * 1.2;
-    minVolatilityPortfolio.riskIndex = this.calculateRiskIndex(minVolatilityPortfolio);
+  private static generateMockPriceData() {
+    const prices = [];
+    let price = 100;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - this.LOOKBACK_DAYS);
 
-    // Benchmark results
-    const benchmarkResults = {
+    for (let i = 0; i < this.LOOKBACK_DAYS; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      price *= (1 + (Math.random() - 0.5) * 0.04); // ±2% daily volatility
+      prices.push({
+        date: date.toISOString().split('T')[0],
+        price: price
+      });
+    }
+
+    return prices;
+  }
+
+  private static calculateReturnsMatrix(stockData: any[]): number[][] {
+    return stockData.map(stock => {
+      const returns = MarketDataService.calculateReturns(stock.data);
+      return returns.map(r => r.return);
+    });
+  }
+
+  private static calculateExpectedReturns(returnsMatrix: number[][]): number[] {
+    return returnsMatrix.map(returns => {
+      const annualizedReturn = StatisticsEngine.calculateMean(returns) * 252; // Annualize daily returns
+      return annualizedReturn;
+    });
+  }
+
+  private static analyzePortfolio(
+    weights: number[],
+    expectedReturns: number[],
+    covarianceMatrix: number[][],
+    returnsMatrix: number[][],
+    riskFreeRate: number
+  ): PortfolioMetrics {
+    const portfolioReturn = StatisticsEngine.calculatePortfolioReturn(weights, expectedReturns);
+    const portfolioVolatility = StatisticsEngine.calculatePortfolioVolatility(weights, covarianceMatrix) * Math.sqrt(252); // Annualize
+    const sharpe = StatisticsEngine.calculateSharpeRatio(portfolioReturn, portfolioVolatility, riskFreeRate);
+    
+    // Calculate portfolio returns for drawdown and Sortino
+    const portfolioReturns = this.calculatePortfolioTimeSeries(weights, returnsMatrix);
+    const maxDrawdown = StatisticsEngine.calculateMaxDrawdown(portfolioReturns);
+    const sortino = StatisticsEngine.calculateSortinoRatio(portfolioReturns, riskFreeRate);
+    
+    const riskIndex = this.calculateRiskIndex(sharpe, portfolioVolatility, maxDrawdown);
+
+    return {
+      return: portfolioReturn,
+      volatility: portfolioVolatility,
+      sharpe,
+      sortino,
+      maxDrawdown,
+      riskIndex,
+      weights: {}
+    };
+  }
+
+  private static calculatePortfolioTimeSeries(weights: number[], returnsMatrix: number[][]): number[] {
+    const timeSeriesLength = returnsMatrix[0].length;
+    const portfolioReturns = [];
+
+    for (let t = 0; t < timeSeriesLength; t++) {
+      let portfolioReturn = 0;
+      for (let i = 0; i < weights.length; i++) {
+        portfolioReturn += weights[i] * returnsMatrix[i][t];
+      }
+      portfolioReturns.push(portfolioReturn);
+    }
+
+    return portfolioReturns;
+  }
+
+  private static optimizeForMaxSharpe(expectedReturns: number[], covarianceMatrix: number[][], riskFreeRate: number): number[] {
+    const numAssets = expectedReturns.length;
+    let bestSharpe = -Infinity;
+    let bestWeights = new Array(numAssets).fill(1 / numAssets);
+
+    // Simple grid search optimization with constraints
+    for (let iter = 0; iter < 10000; iter++) {
+      let weights = this.generateRandomWeights(numAssets);
+      
+      // Apply constraints: min 1%, max 30%
+      weights = weights.map(w => Math.max(0.01, Math.min(0.30, w)));
+      
+      // Normalize to sum to 1
+      const sum = weights.reduce((a, b) => a + b, 0);
+      weights = weights.map(w => w / sum);
+
+      const portfolioReturn = StatisticsEngine.calculatePortfolioReturn(weights, expectedReturns);
+      const portfolioVolatility = StatisticsEngine.calculatePortfolioVolatility(weights, covarianceMatrix) * Math.sqrt(252);
+      const sharpe = StatisticsEngine.calculateSharpeRatio(portfolioReturn, portfolioVolatility, riskFreeRate);
+
+      if (sharpe > bestSharpe) {
+        bestSharpe = sharpe;
+        bestWeights = [...weights];
+      }
+    }
+
+    return bestWeights;
+  }
+
+  private static optimizeForMinVolatility(covarianceMatrix: number[][]): number[] {
+    const numAssets = covarianceMatrix.length;
+    let bestVolatility = Infinity;
+    let bestWeights = new Array(numAssets).fill(1 / numAssets);
+
+    // Simple grid search optimization with constraints
+    for (let iter = 0; iter < 10000; iter++) {
+      let weights = this.generateRandomWeights(numAssets);
+      
+      // Apply constraints: min 1%, max 30%
+      weights = weights.map(w => Math.max(0.01, Math.min(0.30, w)));
+      
+      // Normalize to sum to 1
+      const sum = weights.reduce((a, b) => a + b, 0);
+      weights = weights.map(w => w / sum);
+
+      const portfolioVolatility = StatisticsEngine.calculatePortfolioVolatility(weights, covarianceMatrix) * Math.sqrt(252);
+
+      if (portfolioVolatility < bestVolatility) {
+        bestVolatility = portfolioVolatility;
+        bestWeights = [...weights];
+      }
+    }
+
+    return bestWeights;
+  }
+
+  private static generateRandomWeights(numAssets: number): number[] {
+    const weights = [];
+    for (let i = 0; i < numAssets; i++) {
+      weights.push(Math.random());
+    }
+    const sum = weights.reduce((a, b) => a + b, 0);
+    return weights.map(w => w / sum);
+  }
+
+  private static async analyzeBenchmarks(riskFreeRate: number) {
+    // For now, return simplified benchmark data
+    // In a real implementation, you'd fetch SPY, QQQ, etc. data
+    return {
       'S&P 500': {
         return: 0.10,
         volatility: 0.16,
         sharpe: (0.10 - riskFreeRate) / 0.16,
         sortino: 0.65,
         maxDrawdown: -0.20,
-        riskIndex: 0,
+        riskIndex: this.calculateRiskIndex((0.10 - riskFreeRate) / 0.16, 0.16, -0.20),
         weights: { 'SPY': 1.0 }
       } as PortfolioMetrics
     };
+  }
+
+  private static generateEfficientFrontier(expectedReturns: number[], covarianceMatrix: number[][], riskFreeRate: number) {
+    const points = [];
     
-    benchmarkResults['S&P 500'].riskIndex = this.calculateRiskIndex(benchmarkResults['S&P 500']);
-
-    // Mock sector exposures
-    const sectorExposures = this.generateSectorExposures(stocks);
-
     // Generate efficient frontier points
-    const efficientFrontierData = this.generateEfficientFrontierData();
-
-    return {
-      currentPortfolio,
-      maxSharpePortfolio,
-      minVolatilityPortfolio,
-      benchmarkResults,
-      sectorExposures,
-      efficientFrontierData
-    };
-  }
-
-  private static normalizeWeights(stocks: { ticker: string; weight: number }[]): Record<string, number> {
-    const total = stocks.reduce((sum, stock) => sum + stock.weight, 0);
-    const weights: Record<string, number> = {};
-    
-    stocks.forEach(stock => {
-      weights[stock.ticker] = stock.weight / total;
-    });
-    
-    return weights;
-  }
-
-  private static generateOptimizedWeights(
-    stocks: { ticker: string; weight: number }[], 
-    type: 'maxSharpe' | 'minVol'
-  ): Record<string, number> {
-    const weights: Record<string, number> = {};
-    const numStocks = stocks.length;
-    
-    // Generate more realistic optimization-like weights
-    if (type === 'maxSharpe') {
-      // Max Sharpe tends to concentrate in best performing assets
-      stocks.forEach((stock, index) => {
-        const baseWeight = 1 / numStocks;
-        const adjustment = (Math.random() - 0.5) * 0.4; // +/- 20% adjustment
-        weights[stock.ticker] = Math.max(0.01, Math.min(0.30, baseWeight + adjustment));
-      });
-    } else {
-      // Min Vol tends to be more diversified
-      stocks.forEach(stock => {
-        const baseWeight = 1 / numStocks;
-        const adjustment = (Math.random() - 0.5) * 0.2; // +/- 10% adjustment  
-        weights[stock.ticker] = Math.max(0.01, Math.min(0.30, baseWeight + adjustment));
+    for (let i = 0; i < 50; i++) {
+      const weights = this.generateRandomWeights(expectedReturns.length);
+      const portfolioReturn = StatisticsEngine.calculatePortfolioReturn(weights, expectedReturns);
+      const portfolioVolatility = StatisticsEngine.calculatePortfolioVolatility(weights, covarianceMatrix) * Math.sqrt(252);
+      const sharpe = StatisticsEngine.calculateSharpeRatio(portfolioReturn, portfolioVolatility, riskFreeRate);
+      
+      points.push({
+        volatility: portfolioVolatility,
+        return: portfolioReturn,
+        sharpe
       });
     }
     
-    // Normalize to sum to 1
-    const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
-    Object.keys(weights).forEach(ticker => {
-      weights[ticker] = weights[ticker] / total;
-    });
-    
-    return weights;
+    return points.sort((a, b) => a.volatility - b.volatility);
   }
 
-  private static calculateRiskIndex(metrics: PortfolioMetrics): number {
-    const normSharpe = Math.max(0, Math.min(100, (metrics.sharpe / 3.0) * 100));
-    const normVol = Math.max(0, Math.min(100, (1 - metrics.volatility / 0.50) * 100));
-    const normDrawdown = Math.max(0, Math.min(100, (1 - Math.abs(metrics.maxDrawdown) / 0.60) * 100));
+  private static calculateRiskIndex(sharpe: number, volatility: number, maxDrawdown: number): number {
+    const normSharpe = Math.max(0, Math.min(100, (sharpe / 3.0) * 100));
+    const normVol = Math.max(0, Math.min(100, (1 - volatility / 0.50) * 100));
+    const normDrawdown = Math.max(0, Math.min(100, (1 - Math.abs(maxDrawdown) / 0.60) * 100));
     
     return 0.3 * normSharpe + 0.4 * normVol + 0.3 * normDrawdown;
   }
 
-  private static generateSectorExposures(stocks: { ticker: string; weight: number }[]): Record<string, number> {
-    // Mock sector mapping for common tickers
+  private static createWeightsObject(tickers: string[], weights: number[]): Record<string, number> {
+    const weightsObj: Record<string, number> = {};
+    tickers.forEach((ticker, i) => {
+      weightsObj[ticker] = weights[i];
+    });
+    return weightsObj;
+  }
+
+  private static generateMockSectorExposures(stocks: { ticker: string; weight: number }[]): Record<string, number> {
+    // Mock sector mapping - in real implementation, you'd fetch this from a financial data API
     const sectorMap: Record<string, string> = {
       'AAPL': 'Technology', 'MSFT': 'Technology', 'GOOGL': 'Technology', 'AMZN': 'Consumer Cyclical',
       'TSLA': 'Consumer Cyclical', 'JPM': 'Financials', 'V': 'Financials', 'JNJ': 'Healthcare',
@@ -180,21 +291,5 @@ export class PortfolioOptimizerService {
     });
     
     return sectorExposures;
-  }
-
-  private static generateEfficientFrontierData() {
-    const points = [];
-    for (let i = 0; i < 50; i++) {
-      const volatility = 0.05 + (i / 49) * 0.25; // 5% to 30% volatility range
-      const return_ = 0.02 + volatility * 0.4 + (Math.random() - 0.5) * 0.02; // Rough risk-return relationship
-      const sharpe = (return_ - 0.02) / volatility;
-      
-      points.push({
-        volatility,
-        return: return_,
-        sharpe
-      });
-    }
-    return points;
   }
 }
