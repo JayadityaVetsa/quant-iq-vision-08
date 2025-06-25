@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, TrendingUp, X } from "lucide-react";
+import { Plus, Trash2, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePortfolio } from "@/contexts/PortfolioContext";
+import { PortfolioOptimizerService } from "@/utils/portfolioOptimizer";
 
 interface Stock {
   ticker: string;
@@ -22,6 +24,7 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
   const [initialValue, setInitialValue] = useState("10000");
   const [riskFreeRate, setRiskFreeRate] = useState("3.0");
   const { toast } = useToast();
+  const { setPortfolioData, setOptimizationResults, setIsAnalyzing } = usePortfolio();
 
   const addStock = () => {
     setStocks([...stocks, { ticker: "", weight: 0 }]);
@@ -40,7 +43,7 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
     setStocks(updatedStocks);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation
     const emptyTickers = stocks.filter(stock => !stock.ticker.trim());
     if (emptyTickers.length > 0) {
@@ -71,17 +74,44 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
       return;
     }
 
-    // Success
-    toast({
-      title: "Portfolio created successfully",
-      description: `Portfolio with ${stocks.length} stocks and $${parseFloat(initialValue).toLocaleString()} starting value.`,
-    });
+    const portfolioData = {
+      stocks: stocks.map(stock => ({
+        ticker: stock.ticker.toUpperCase(),
+        weight: stock.weight / 100 // Convert percentage to decimal
+      })),
+      initialValue: parseFloat(initialValue),
+      riskFreeRate: parseFloat(riskFreeRate) / 100 // Convert percentage to decimal
+    };
 
-    // Reset form and close modal
-    setStocks([{ ticker: "", weight: 0 }]);
-    setInitialValue("10000");
-    setRiskFreeRate("3.0");
-    onClose();
+    try {
+      setPortfolioData(portfolioData);
+      setIsAnalyzing(true);
+      onClose();
+
+      toast({
+        title: "Portfolio analysis started",
+        description: "Optimizing your portfolio and fetching market data...",
+      });
+
+      // Run the optimization
+      const results = await PortfolioOptimizerService.optimizePortfolio(portfolioData);
+      setOptimizationResults(results);
+      
+      toast({
+        title: "Analysis complete!",
+        description: `Portfolio with ${stocks.length} stocks analyzed successfully.`,
+      });
+
+    } catch (error) {
+      toast({
+        title: "Analysis failed",
+        description: "There was an error analyzing your portfolio. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Portfolio optimization error:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleClose = () => {
@@ -100,7 +130,7 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
             <span>Create Portfolio</span>
           </DialogTitle>
           <DialogDescription>
-            Manually enter your stock positions and portfolio details to get started with analysis.
+            Enter your stock positions to analyze risk, optimize allocation, and compare against benchmarks.
           </DialogDescription>
         </DialogHeader>
 
@@ -224,7 +254,7 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
             className="bg-blue-600 hover:bg-blue-700"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
-            Create Portfolio
+            Analyze Portfolio
           </Button>
         </div>
       </DialogContent>
