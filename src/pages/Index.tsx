@@ -2,14 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, TrendingUp, BarChart3, Target, User } from "lucide-react";
-import { UploadModal } from "@/components/UploadModal";
+import { Plus, TrendingUp, BarChart3, Target, User } from "lucide-react";
+import { ManualEntryModal } from "@/components/ManualEntryModal";
 import { MetricsCard } from "@/components/MetricsCard";
 import { QuickStats } from "@/components/QuickStats";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showEntryModal, setShowEntryModal] = useState(false);
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -58,11 +58,11 @@ const Index = () => {
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
             <Button
-              onClick={() => setShowUploadModal(true)}
+              onClick={() => setShowEntryModal(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload CSV
+              <Plus className="w-4 h-4 mr-2" />
+              Create Portfolio
             </Button>
             <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-slate-600" />
@@ -82,7 +82,7 @@ const Index = () => {
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                 Intuitive portfolio optimization and risk analysis for early investors, 
-                students, and retail traders. Get started by uploading your portfolio CSV.
+                students, and retail traders. Get started by creating your portfolio.
               </p>
             </div>
 
@@ -188,16 +188,16 @@ const Index = () => {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">Upload Your Portfolio</h3>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">Create Your Portfolio</h3>
               <p className="text-slate-600 mb-6">
-                Upload a CSV file with your portfolio holdings to get started with optimization analysis.
+                Enter your stock positions manually to get started with optimization analysis.
               </p>
               <Button 
-                onClick={() => setShowUploadModal(true)}
+                onClick={() => setShowEntryModal(true)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Portfolio CSV
+                <Plus className="w-4 h-4 mr-2" />
+                Create Portfolio
               </Button>
             </Card>
           </div>
@@ -215,14 +215,14 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">Select Stocks to Analyze</h3>
               <p className="text-slate-600 mb-6">
-                Upload your portfolio first, then dive deep into individual stock analysis with technical indicators and ELI18 mode.
+                Create your portfolio first, then dive deep into individual stock analysis with technical indicators and ELI18 mode.
               </p>
               <Button 
-                onClick={() => setShowUploadModal(true)}
+                onClick={() => setShowEntryModal(true)}
                 className="bg-green-600 hover:bg-green-700"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Portfolio CSV
+                <Plus className="w-4 h-4 mr-2" />
+                Create Portfolio
               </Button>
             </Card>
           </div>
@@ -243,21 +243,21 @@ const Index = () => {
                 Visualize how risk accumulates over time and see the range of potential future outcomes for your portfolio.
               </p>
               <Button 
-                onClick={() => setShowUploadModal(true)}
+                onClick={() => setShowEntryModal(true)}
                 className="bg-red-600 hover:bg-red-700"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Portfolio CSV
+                <Plus className="w-4 h-4 mr-2" />
+                Create Portfolio
               </Button>
             </Card>
           </div>
         )}
       </main>
 
-      {/* Upload Modal */}
-      <UploadModal 
-        isOpen={showUploadModal} 
-        onClose={() => setShowUploadModal(false)} 
+      {/* Manual Entry Modal */}
+      <ManualEntryModal 
+        isOpen={showEntryModal} 
+        onClose={() => setShowEntryModal(false)} 
       />
     </div>
   );
