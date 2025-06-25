@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 import { OptimizationResults } from "@/contexts/PortfolioContext";
 
 interface ComparisonChartsProps {
@@ -14,17 +14,20 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
       {
         name: "Your Portfolio",
         value: results.currentPortfolio[metric],
-        type: "current"
+        type: "current",
+        color: "#007bff"
       },
       {
         name: "Max Sharpe",
         value: results.maxSharpePortfolio[metric],
-        type: "optimal"
+        type: "optimal",
+        color: "#d9534f"
       },
       {
         name: "Min Volatility",
         value: results.minVolatilityPortfolio[metric],
-        type: "conservative"
+        type: "conservative",
+        color: "#5cb85c"
       }
     ];
 
@@ -33,7 +36,8 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
       data.push({
         name,
         value: metrics[metric],
-        type: "benchmark"
+        type: "benchmark",
+        color: "#6c757d"
       });
     });
 
@@ -75,19 +79,11 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
                   tickLine={false}
                   width={120}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill={(entry) => {
-                    const colors = {
-                      current: "#007bff",
-                      optimal: "#d9534f", 
-                      conservative: "#5cb85c",
-                      benchmark: "#6c757d"
-                    };
-                    return colors[entry.type as keyof typeof colors] || "#6c757d";
-                  }}
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {riskIndexData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                   formatter={(value) => [typeof value === 'number' ? value.toFixed(1) : value, "Risk Index"]}
@@ -115,11 +111,11 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
                   tickLine={false}
                   width={120}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill="#28a745"
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {sharpeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                   formatter={(value) => [typeof value === 'number' ? value.toFixed(3) : value, "Sharpe Ratio"]}
@@ -147,11 +143,11 @@ export const ComparisonCharts = ({ results }: ComparisonChartsProps) => {
                   tickLine={false}
                   width={120}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill="#dc3545"
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {volatilityData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                   formatter={(value) => [typeof value === 'number' ? `${(value * 100).toFixed(2)}%` : value, "Volatility"]}

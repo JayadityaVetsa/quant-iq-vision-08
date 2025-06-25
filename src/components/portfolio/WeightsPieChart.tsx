@@ -70,7 +70,10 @@ export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value, entry) => `${value}: ${entry.payload.displayValue}`}
+                formatter={(value) => {
+                  const item = data.find(d => d.name === value);
+                  return `${value}: ${item?.displayValue || ''}`;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
