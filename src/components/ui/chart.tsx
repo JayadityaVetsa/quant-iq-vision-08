@@ -50,9 +50,10 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-video justify-center text-xs bg-white/60 backdrop-blur-lg rounded-2xl shadow-2xl animate-fadein-up border border-slate-200/60 p-4 md:p-6 transition-all duration-500",
           className
         )}
+        style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)', touchAction: 'manipulation' }}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
@@ -177,7 +178,7 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+          "grid min-w-[8rem] items-start gap-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-lg px-3 py-2 text-xs shadow-2xl animate-fadein-up transition-all duration-300",
           className
         )}
       >

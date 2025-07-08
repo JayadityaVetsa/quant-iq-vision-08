@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { DashboardTab } from "@/components/tabs/DashboardTab";
@@ -6,6 +5,7 @@ import { OptimizerTab } from "@/components/tabs/OptimizerTab";
 import { AnalyzerTab } from "@/components/tabs/AnalyzerTab";
 import { SimulatorTab } from "@/components/tabs/SimulatorTab";
 import { ManualEntryModal } from "@/components/ManualEntryModal";
+import { GuideTab } from "@/components/tabs/GuideTab";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -29,6 +29,8 @@ const Index = () => {
         return <AnalyzerTab onCreatePortfolio={handleCreatePortfolio} />;
       case "simulator":
         return <SimulatorTab onCreatePortfolio={handleCreatePortfolio} />;
+      case "guide":
+        return <GuideTab />;
       default:
         return <DashboardTab setActiveTab={setActiveTab} />;
     }

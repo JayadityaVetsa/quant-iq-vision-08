@@ -1,73 +1,137 @@
-# Welcome to your Lovable project
+# Quant IQ Vision
 
-## Project info
+A modern portfolio analysis and optimization application built with React (frontend) and FastAPI (backend).
 
-**URL**: https://lovable.dev/projects/dc7ad353-91e7-4f82-9b7b-f09b11331522
+## Project Structure
 
-## How can I edit this code?
+```
+quant-iq-vision-08/
+├── src/                    # React frontend (Vite + TypeScript)
+│   ├── components/         # React components
+│   ├── services/          # API services
+│   └── ...
+├── backend/               # FastAPI backend
+│   ├── main.py           # FastAPI application
+│   ├── requirements.txt  # Python dependencies
+│   └── ...
+├── package.json          # Frontend dependencies and scripts
+└── README.md            # This file
+```
 
-There are several ways of editing your application.
+## Quick Start
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dc7ad353-91e7-4f82-9b7b-f09b11331522) and start prompting.
+- **Node.js** (v18 or higher)
+- **Python** (v3.8 or higher)
+- **npm** or **yarn**
 
-Changes made via Lovable will be committed automatically to this repo.
+### 1. Install Frontend Dependencies
 
-**Use your preferred IDE**
+```bash
+npm install
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 2. Install Backend Dependencies
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cd ..
+```
 
-Follow these steps:
+### 3. Set Up Environment Variables
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Copy backend environment template
+cp backend/env.example backend/.env
+# Edit backend/.env with your configuration
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 4. Run Both Frontend and Backend
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Run both frontend and backend simultaneously
+npm run dev:full
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+This will start:
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+
+## Development
+
+### Running Frontend Only
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Running Backend Only
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run dev:backend
+```
 
-**Use GitHub Codespaces**
+### Building for Production
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run build
+```
 
-## What technologies are used for this project?
+## API Endpoints
 
-This project is built with:
+The backend provides the following endpoints:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `GET /health` - Health check
+- `POST /api/portfolio/analyze` - Portfolio analysis
+- `GET /api/market-data/{symbol}` - Market data for a symbol
+- `GET /` - Root endpoint with API info
 
-## How can I deploy this project?
+## Frontend-Backend Integration
 
-Simply open [Lovable](https://lovable.dev/projects/dc7ad353-91e7-4f82-9b7b-f09b11331522) and click on Share -> Publish.
+The frontend is configured to proxy API requests to the backend during development:
 
-## Can I connect a custom domain to my Lovable project?
+- API requests to `/api/*` are proxied to `http://localhost:8000`
+- Health check requests to `/health` are proxied to `http://localhost:8000`
+- CORS is configured on the backend to allow requests from the frontend
 
-Yes, you can!
+## Features
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **Portfolio Analysis**: Analyze portfolio performance and risk metrics
+- **Efficient Frontier**: Visualize optimal portfolio allocations
+- **Market Data**: Real-time market data integration
+- **Modern UI**: Built with React, TypeScript, and Tailwind CSS
+- **RESTful API**: FastAPI backend with automatic documentation
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Technology Stack
+
+### Frontend
+- React 18 with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- Shadcn/ui components
+- React Router for navigation
+- Recharts for data visualization
+
+### Backend
+- FastAPI for API framework
+- Pydantic for data validation
+- SQLAlchemy for database ORM
+- Uvicorn for ASGI server
+- Python 3.8+
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test both frontend and backend
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.

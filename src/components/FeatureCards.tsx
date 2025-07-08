@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, TrendingUp, BarChart3 } from "lucide-react";
@@ -39,34 +38,38 @@ export const FeatureCards = ({ setActiveTab }: FeatureCardsProps) => {
   ];
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid md:grid-cols-3 gap-8">
       {features.map((feature) => {
         const Icon = feature.icon;
+        const isMonteCarlo = feature.id === "simulator";
         return (
-          <Card key={feature.id} className={`hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-${feature.color}-500`}>
+          <Card
+            key={feature.id}
+            className={`bg-white/60 backdrop-blur-lg border border-slate-200/60 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.03] transition-all duration-400 group overflow-hidden relative`}
+            style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)' }}
+          >
             <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 bg-${feature.color}-100 rounded-lg flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 text-${feature.color}-600`} />
+              <div className="flex items-center space-x-4">
+                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className={`w-6 h-6 text-${feature.color}-600`} />
                 </div>
                 <div>
-                  <CardTitle className="text-slate-800">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
+                  <CardTitle className={`${isMonteCarlo ? 'text-sm md:text-base' : 'text-lg'} font-semibold text-slate-900 tracking-tight mb-1 leading-tight`}>{feature.title}</CardTitle>
+                  <CardDescription className="text-base text-slate-500 leading-snug mb-2">{feature.description}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-slate-600 mb-4">
-                {feature.content}
-              </p>
-              <Button 
-                variant="outline" 
+              <p className="text-slate-700 mb-6 text-base leading-relaxed min-h-[56px]">{feature.content}</p>
+              <Button
+                variant="outline"
                 onClick={() => setActiveTab(feature.id)}
-                className="w-full"
+                className="w-full rounded-full font-semibold text-base py-2 bg-white/80 hover:bg-blue-50/80 transition-all duration-300 shadow"
               >
                 {feature.buttonText}
               </Button>
             </CardContent>
+            <div className={`absolute inset-0 pointer-events-none rounded-2xl border-2 border-transparent group-hover:border-${feature.color}-300 transition-all duration-300`}></div>
           </Card>
         );
       })}
