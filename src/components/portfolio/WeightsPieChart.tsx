@@ -45,9 +45,12 @@ export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
   }, {} as any);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+    <Card className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500">
+      <CardHeader className="bg-gradient-to-r from-cyan-50 to-teal-50 border-b border-cyan-100/50">
+        <CardTitle className="flex items-center gap-2 text-slate-800">
+          <div className="w-2 h-6 bg-gradient-to-b from-cyan-500 to-cyan-600 rounded-full"></div>
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px]">

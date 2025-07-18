@@ -50,10 +50,15 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs bg-white/60 backdrop-blur-lg rounded-2xl shadow-2xl animate-fadein-up border border-slate-200/60 p-4 md:p-6 transition-all duration-500",
+          "flex aspect-video justify-center text-xs bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/40 p-4 md:p-6 transition-all duration-700 hover:shadow-3xl hover:scale-[1.01] group",
           className
         )}
-        style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)', touchAction: 'manipulation' }}
+        style={{ 
+          boxShadow: '0 20px 48px 0 rgba(31, 38, 135, 0.12), 0 8px 16px 0 rgba(0, 0, 0, 0.04)', 
+          touchAction: 'manipulation',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)'
+        }}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />

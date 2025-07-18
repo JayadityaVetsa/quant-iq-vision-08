@@ -1,6 +1,6 @@
-import { MonteCarloTab } from "../portfolio/MonteCarloTab";
 import { HestonSimulatorTab } from "./HestonSimulatorTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MonteCarloTab } from "../portfolio/MonteCarloTab";
 
 interface SimulatorTabProps {
   onCreatePortfolio: () => void;
@@ -21,10 +21,6 @@ export const SimulatorTab = ({ onCreatePortfolio }: SimulatorTabProps) => {
         </TabsList>
         
         <TabsContent value="monte-carlo" className="space-y-6">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">Monte Carlo Simulation</h3>
-            <p className="text-slate-600">Forecast potential portfolio outcomes with 10,000 simulations</p>
-          </div>
           <MonteCarloTab />
         </TabsContent>
         

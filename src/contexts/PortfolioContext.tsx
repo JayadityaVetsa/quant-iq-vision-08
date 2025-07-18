@@ -19,6 +19,11 @@ export interface OptimizationResults {
   benchmarkResults: Record<string, PortfolioMetrics>;
   sectorExposures: Record<string, number>;
   efficientFrontierData: EfficientFrontierPoint[];
+  monteCarloSimulation?: {
+    returns: number[];
+    volatilities: number[];
+    sharpe_ratios: number[];
+  };
 }
 
 export interface PortfolioMetrics {

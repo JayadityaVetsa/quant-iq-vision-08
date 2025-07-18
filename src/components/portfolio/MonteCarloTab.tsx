@@ -217,9 +217,12 @@ export const MonteCarloTab: React.FC = () => {
 
   // Chart renderers
   const renderPriceChart = () => result && priceChartData.length > 0 && (
-    <Card key="priceChart">
-      <CardHeader>
-        <CardTitle>Historical Price Performance</CardTitle>
+    <Card key="priceChart" className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100/50">
+        <CardTitle className="flex items-center gap-2 text-slate-800">
+          <div className="w-2 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+          Historical Price Performance
+        </CardTitle>
         <CardDescription>
           Normalized to $100 at start date. Shows how each stock performed over the period.
         </CardDescription>
@@ -248,9 +251,12 @@ export const MonteCarloTab: React.FC = () => {
   );
 
   const renderReturnDistributions = () => result && (
-    <Card key="returnDistributions">
-      <CardHeader>
-        <CardTitle>Distribution of Daily Returns (Volatility)</CardTitle>
+    <Card key="returnDistributions" className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500">
+      <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100/50">
+        <CardTitle className="flex items-center gap-2 text-slate-800">
+          <div className="w-2 h-6 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full"></div>
+          Distribution of Daily Returns (Volatility)
+        </CardTitle>
         <CardDescription>
           A wider spread means higher volatility and risk. This is what the simulation uses to generate random daily price moves.
         </CardDescription>
@@ -378,9 +384,12 @@ export const MonteCarloTab: React.FC = () => {
   );
 
   const renderCone = () => result && (
-    <Card key="cone">
-      <CardHeader>
-        <CardTitle>Cone of Possibility</CardTitle>
+    <Card key="cone" className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100/50">
+        <CardTitle className="flex items-center gap-2 text-slate-800">
+          <div className="w-2 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
+          Cone of Possibility
+        </CardTitle>
         <CardDescription>
           The shaded area shows the 10th to 90th percentile range of simulated portfolio values.
         </CardDescription>

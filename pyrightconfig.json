@@ -1,0 +1,33 @@
+{
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "backend/venv",
+    "backend/__pycache__",
+    "node_modules",
+    ".venv",
+    "build",
+    "dist"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "reportOptionalSubscript": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalCall": "none",
+  "reportOptionalIterable": "none",
+  "reportOptionalContextManager": "none",
+  "reportOptionalOperand": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportCallIssue": "warning",
+  "reportArgumentType": "warning",
+  "reportIndexIssue": "none",
+  "reportOperatorIssue": "none",
+  "pythonVersion": "3.8",
+  "stubPath": "./backend/typings",
+  "venvPath": "./backend",
+  "venv": "venv",
+  "useLibraryCodeForTypes": true,
+  "autoSearchPaths": true
+} 

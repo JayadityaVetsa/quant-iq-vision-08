@@ -7,4 +7,12 @@ yfinance
 numpy
 pandas
 matplotlib
-scipy 
+scipy
+pyportfolioopt
+quantstats
+plotly
+ipython
+# Type stubs for better type checking
+pandas-stubs
+types-requests
+types-python-dateutil 

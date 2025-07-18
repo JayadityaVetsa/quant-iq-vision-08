@@ -24,7 +24,7 @@ export const GuideTab = () => (
       <CardContent>
         <ul className="list-disc pl-6 space-y-2 text-slate-700">
           <li>Enter your current stock tickers and weights.</li>
-          <li>Click "Optimize Portfolio" to see suggested improvements using Modern Portfolio Theory (MPT).</li>
+                      <li>Click "Optimize Portfolio" to see suggested improvements using Efficient Frontier (EF).</li>
           <li>Compare your portfolio to optimized and benchmark portfolios.</li>
           <li>Review risk, return, and allocation charts to understand your options.</li>
         </ul>

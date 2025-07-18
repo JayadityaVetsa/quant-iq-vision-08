@@ -6,6 +6,7 @@ import { WeightsPieChart } from "./WeightsPieChart";
 import { EfficientFrontierChart } from "./EfficientFrontierChart";
 import { MetricsTable } from "./MetricsTable";
 import { ComparisonCharts } from "./ComparisonCharts";
+import { MinVolatilityChart } from "./MinVolatilityChart";
 import { Loader2 } from "lucide-react";
 
 export const PortfolioResults = () => {
@@ -37,9 +38,10 @@ export const PortfolioResults = () => {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="optimization">Optimization</TabsTrigger>
+          <TabsTrigger value="minvol">Min Volatility</TabsTrigger>
           <TabsTrigger value="analysis">Analysis</TabsTrigger>
           <TabsTrigger value="comparison">Comparison</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
@@ -95,6 +97,10 @@ export const PortfolioResults = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="minvol" className="space-y-6">
+          <MinVolatilityChart data={optimizationResults} />
         </TabsContent>
 
         <TabsContent value="analysis" className="space-y-6">

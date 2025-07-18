@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, BarChart3, Target, User, BookOpen } from "lucide-react";
+import { Plus, TrendingUp, BarChart3, Target, User, BookOpen, Brain } from "lucide-react";
 
 interface HeaderProps {
   activeTab: string;

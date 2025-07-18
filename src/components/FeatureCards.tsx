@@ -11,8 +11,8 @@ export const FeatureCards = ({ setActiveTab }: FeatureCardsProps) => {
     {
       id: "optimizer",
       title: "Portfolio Optimizer",
-      description: "Modern Portfolio Theory analysis",
-      content: "Analyze your current portfolio and discover optimized alternatives using MPT. Compare against crowd wisdom benchmarks.",
+      description: "EF & Black-Litterman optimization",
+      content: "Analyze your current portfolio with Efficient Frontier and Black-Litterman optimization. Incorporate your market views and confidence levels.",
       icon: Target,
       color: "blue",
       buttonText: "Optimize Portfolio"
@@ -38,7 +38,7 @@ export const FeatureCards = ({ setActiveTab }: FeatureCardsProps) => {
   ];
 
   return (
-    <div className="grid md:grid-cols-3 gap-8">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       {features.map((feature) => {
         const Icon = feature.icon;
         const isMonteCarlo = feature.id === "simulator";

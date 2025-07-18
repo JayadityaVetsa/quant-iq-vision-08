@@ -76,10 +76,6 @@ export interface HestonRequest {
   n_paths?: number;
   n_days?: number;
   confidence_level?: number;
-  kappa?: number;
-  theta?: number;
-  xi?: number;
-  rho?: number;
 }
 
 export interface HestonResponse {
@@ -95,6 +91,86 @@ export interface HestonResponse {
   initial_value: number;
   confidence_level: number;
   message: string;
+}
+
+export interface BlackLittermanRequest {
+  tickers: string[];
+  views: Record<string, number>;
+  confidences: Record<string, number>;
+  period?: string;
+  tau?: number;
+  rf_rate?: number;
+  include_dividends?: boolean;
+}
+
+export interface BlackLittermanResponse {
+  optimal_weights: Record<string, number>;
+  posterior_returns: Record<string, number>;
+  portfolio_stats: Record<string, any>;
+  comparison_table: Array<Record<string, any>>;
+  stock_info: Record<string, Record<string, any>>;
+  message: string;
+  allocation_summary?: Array<Record<string, any>>;
+  key_insights?: Array<string>;
+  model_parameters?: Record<string, any>;
+}
+
+export interface EFTRequest {
+  tickers: string[];
+  weights: number[];
+  start_date: string;
+  end_date: string;
+  risk_free_rate?: number;
+  weight_bounds?: number[];
+  n_simulations?: number;
+  n_frontier_points?: number;
+}
+
+export interface SimpleEFTRequest {
+  tickers: string[];
+  start_date?: string;
+  risk_free_rate?: number;
+  weight_bounds_min?: number;
+  weight_bounds_max?: number;
+}
+
+export interface EFTResponse {
+  portfolio_metrics: Record<string, any>;
+  efficient_frontier: Array<Record<string, number>>;
+  monte_carlo_simulation: Record<string, number[]>;
+  benchmarks: Record<string, Record<string, any>>;
+  composition: Record<string, any>;
+  optimization_settings: Record<string, any>;
+  message: string;
+}
+
+export interface BacktestRequest {
+  tickers: string[];
+  weights: number[];
+  start_date: string;
+  end_date: string;
+  benchmark?: string;
+  risk_free_rate?: number;
+  initial_value?: number;
+  n_simulations?: number;
+  n_days?: number;
+}
+
+export interface BacktestResponse {
+  riskIndex: number;
+  weights: Record<string, number>;
+  minVolatility: {
+    weights: Record<string, number>;
+    annual_vol: number;
+    annual_ret: number;
+    sharpe: number;
+  };
+  efficientFrontier: Array<{
+    weights: Record<string, number>;
+    annual_ret: number;
+    annual_vol: number;
+  }>;
+  comparison: Record<string, any>;
 }
 
 class ApiService {
@@ -166,6 +242,34 @@ class ApiService {
   async runHestonSimulation(data: HestonRequest): Promise<HestonResponse> {
     return this.request<HestonResponse>("/api/portfolio/heston", {
       method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async runBlackLittermanOptimization(data: BlackLittermanRequest): Promise<BlackLittermanResponse> {
+    return this.request<BlackLittermanResponse>("/api/portfolio/black-litterman", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async runEFTOptimization(data: EFTRequest): Promise<EFTResponse> {
+    return this.request<EFTResponse>("/api/portfolio/eft", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async runSimpleEFTOptimization(data: SimpleEFTRequest): Promise<EFTResponse> {
+    return this.request<EFTResponse>("/api/portfolio/eft-simple", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async runBacktest(data: BacktestRequest): Promise<BacktestResponse> {
+    return this.request<BacktestResponse>('/api/portfolio/backtest', {
+      method: 'POST',
       body: JSON.stringify(data),
     });
   }

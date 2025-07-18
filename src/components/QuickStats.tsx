@@ -20,7 +20,7 @@ export const QuickStats = () => {
     {
       icon: Zap,
       label: "Real Quant Rigor",
-      description: "Modern Portfolio Theory & Monte Carlo",
+      description: "Efficient Frontier & Monte Carlo",
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },

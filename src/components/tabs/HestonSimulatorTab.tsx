@@ -19,10 +19,6 @@ export const HestonSimulatorTab: React.FC = () => {
   const [nPaths, setNPaths] = useState(10000);
   const [nDays, setNDays] = useState(252);
   const [confidenceLevel, setConfidenceLevel] = useState(0.90);
-  const [kappa, setKappa] = useState(3.0);
-  const [theta, setTheta] = useState(0.04);
-  const [xi, setXi] = useState(0.5);
-  const [rho, setRho] = useState(-0.7);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,10 +84,6 @@ export const HestonSimulatorTab: React.FC = () => {
         n_paths: nPaths,
         n_days: nDays,
         confidence_level: confidenceLevel,
-        kappa,
-        theta,
-        xi,
-        rho,
       };
       
       const res = await apiService.runHestonSimulation(req);
@@ -225,53 +217,12 @@ export const HestonSimulatorTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Heston Model Parameters */}
+            {/* Note: Heston Model Parameters are now auto-calibrated */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Heston Model Parameters</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="kappa">κ (Kappa) - Mean Reversion Speed</Label>
-                  <Input
-                    id="kappa"
-                    type="number"
-                    step="0.1"
-                    value={kappa}
-                    onChange={(e) => setKappa(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="theta">θ (Theta) - Long-term Variance</Label>
-                  <Input
-                    id="theta"
-                    type="number"
-                    step="0.01"
-                    value={theta}
-                    onChange={(e) => setTheta(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="xi">ξ (Xi) - Volatility of Volatility</Label>
-                  <Input
-                    id="xi"
-                    type="number"
-                    step="0.1"
-                    value={xi}
-                    onChange={(e) => setXi(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rho">ρ (Rho) - Price-Vol Correlation</Label>
-                  <Input
-                    id="rho"
-                    type="number"
-                    step="0.1"
-                    min="-1"
-                    max="1"
-                    value={rho}
-                    onChange={(e) => setRho(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
+              <Label className="text-base font-semibold">Model Configuration</Label>
+              <p className="text-sm text-slate-600">
+                Heston model parameters (κ, θ, ξ, ρ) are automatically calibrated for each stock using historical data.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -324,31 +275,13 @@ export const HestonSimulatorTab: React.FC = () => {
               </div>
             </div>
             
-            {/* Heston Model Parameters Summary */}
+            {/* Model Information */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-3">Heston Model Parameters Used</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">κ (Kappa)</p>
-                  <p className="text-lg font-semibold">{kappa}</p>
-                  <p className="text-xs text-gray-500">Mean reversion speed</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">θ (Theta)</p>
-                  <p className="text-lg font-semibold">{theta}</p>
-                  <p className="text-xs text-gray-500">Long-term variance</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">ξ (Xi)</p>
-                  <p className="text-lg font-semibold">{xi}</p>
-                  <p className="text-xs text-gray-500">Volatility of volatility</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">ρ (Rho)</p>
-                  <p className="text-lg font-semibold">{rho}</p>
-                  <p className="text-xs text-gray-500">Price-vol correlation</p>
-                </div>
-              </div>
+              <h4 className="font-semibold text-gray-800 mb-3">Model Information</h4>
+              <p className="text-sm text-gray-600">
+                Heston model parameters (κ, θ, ξ, ρ) were automatically calibrated for each stock using historical data.
+                The model captures stochastic volatility to provide more realistic risk estimates.
+              </p>
             </div>
           </CardContent>
         </Card>

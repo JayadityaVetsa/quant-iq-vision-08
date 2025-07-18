@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[tool.pyright]
+include = ["."]
+exclude = ["venv", "__pycache__"]
+typeCheckingMode = "basic"
+reportMissingImports = "warning"
+reportMissingTypeStubs = "none"
+reportOptionalSubscript = "none"
+reportOptionalMemberAccess = "none" 
+reportOptionalCall = "none"
+reportOptionalIterable = "none"
+reportOptionalContextManager = "none"
+reportOptionalOperand = "none"
+reportAttributeAccessIssue = "none"
+reportCallIssue = "warning"
+reportArgumentType = "warning"
+reportIndexIssue = "none"
+reportOperatorIssue = "none"
+pythonVersion = "3.8"
+stubPath = "./typings"
+venvPath = "."
+venv = "venv"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+disallow_untyped_decorators = false
+no_implicit_optional = false
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = false
+warn_unreachable = false
+strict_equality = false
+show_error_codes = true
+
+# Pandas-specific settings
+[tool.mypy-pandas]
+ignore_missing_imports = true
+
+[tool.mypy-pandas.*]
+ignore_missing_imports = true
+
+[tool.mypy-yfinance]
+ignore_missing_imports = true
+
+[tool.mypy-numpy]
+ignore_missing_imports = true
+
+[tool.pylint]
+disable = [
+    "C0103",  # Invalid name
+    "C0114",  # Missing module docstring
+    "C0115",  # Missing class docstring
+    "C0116",  # Missing function docstring
+    "R0903",  # Too few public methods
+    "R0913",  # Too many arguments
+    "W0613",  # Unused argument
+    "E1136",  # Value is unsubscriptable (false positives with pandas)
+    "E1137",  # Unsupported assignment target (false positives with pandas)
+    "E1101",  # Instance has no member (false positives with pandas)
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+''' 

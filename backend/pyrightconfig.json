@@ -1,0 +1,27 @@
+{
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "venv",
+    "__pycache__"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "reportOptionalSubscript": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalCall": "none",
+  "reportOptionalIterable": "none",
+  "reportOptionalContextManager": "none",
+  "reportOptionalOperand": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportCallIssue": "warning",
+  "reportArgumentType": "warning",
+  "reportIndexIssue": "none",
+  "reportOperatorIssue": "none",
+  "pythonVersion": "3.8",
+  "stubPath": "./typings",
+  "venvPath": ".",
+  "venv": "venv"
+} 
