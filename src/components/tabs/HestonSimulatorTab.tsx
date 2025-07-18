@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { apiService, HestonRequest, HestonResponse } from "@/services/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { HestonDistributionChart } from "@/components/portfolio/HestonDistributionChart";
+import { HestonPathsChart } from "@/components/portfolio/HestonPathsChart";
 
 const DEFAULT_TICKERS = ["AAPL", "TSLA", "NVDA", "ANET", "MSFT", "GOOG", "WMT", "V", "JPM", "XOM"];
 const DEFAULT_WEIGHTS = Array(10).fill(0.1);
@@ -285,6 +287,14 @@ export const HestonSimulatorTab: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {result && result.portfolio_paths && result.portfolio_paths.length > 0 && (
+        <HestonPathsChart result={result} nDays={nDays} />
+      )}
+
+      {result && result.final_distribution && result.final_distribution.length > 0 && (
+        <HestonDistributionChart result={result} />
       )}
     </div>
   );

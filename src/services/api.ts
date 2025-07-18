@@ -80,6 +80,7 @@ export interface HestonRequest {
 
 export interface HestonResponse {
   final_distribution: number[];
+  portfolio_paths: number[][];
   var_value: number;
   var_dollar: number;
   var_percent: number;

@@ -109,6 +109,7 @@ class HestonRequest(BaseModel):
 
 class HestonResponse(BaseModel):
     final_distribution: List[float]
+    portfolio_paths: List[List[float]]  # List of portfolio value paths over time
     var_value: float
     var_dollar: float
     var_percent: float
@@ -542,6 +543,19 @@ async def heston_simulation(request: HestonRequest = Body(...)):
         
         # Calculate final portfolio values using share counts
         final_portfolio_values = final_prices.dot(share_counts)
+        
+        # Calculate portfolio paths over time
+        portfolio_paths = []
+        # Sample up to 100 paths to avoid huge response size
+        sample_size = min(100, N_PATHS)
+        path_indices = np.random.choice(N_PATHS, sample_size, replace=False)
+        
+        for path_idx in path_indices:
+            path_values = []
+            for t in range(N_DAYS_FORWARD + 1):
+                portfolio_value = np.sum(S[t, path_idx, :] * share_counts)
+                path_values.append(float(portfolio_value))
+            portfolio_paths.append(path_values)
 
         # =================== Risk Metrics ====================================
         VaR_value = np.percentile(final_portfolio_values, 100 * (1 - CONFIDENCE_LEVEL))
@@ -555,6 +569,7 @@ async def heston_simulation(request: HestonRequest = Body(...)):
 
         return HestonResponse(
             final_distribution=final_portfolio_values.tolist(),
+            portfolio_paths=portfolio_paths,
             var_value=float(VaR_value),
             var_dollar=float(VaR_dollar),
             var_percent=float(VaR_pct),
@@ -570,6 +585,7 @@ async def heston_simulation(request: HestonRequest = Body(...)):
     except Exception as e:
         return HestonResponse(
             final_distribution=[],
+            portfolio_paths=[],
             var_value=0.0,
             var_dollar=0.0,
             var_percent=0.0,
