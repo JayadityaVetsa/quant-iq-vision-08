@@ -8,21 +8,27 @@ interface RiskGaugeProps {
 
 export const RiskGauge = ({ riskIndex, title }: RiskGaugeProps) => {
   const getColor = (value: number) => {
-    if (value >= 70) return "text-green-600";
-    if (value >= 40) return "text-yellow-600";
-    return "text-red-600";
+    if (value >= 70) return "text-red-600";
+    if (value >= 40) return "text-orange-600";
+    return "text-green-600";
   };
 
   const getBackgroundColor = (value: number) => {
-    if (value >= 70) return "bg-green-100";
-    if (value >= 40) return "bg-yellow-100";
-    return "bg-red-100";
+    if (value >= 70) return "bg-red-100";
+    if (value >= 40) return "bg-orange-100";
+    return "bg-green-100";
   };
 
   const getRiskLevel = (value: number) => {
-    if (value >= 70) return "Low Risk";
+    if (value >= 70) return "High Risk";
     if (value >= 40) return "Medium Risk";
-    return "High Risk";
+    return "Low Risk";
+  };
+
+  const getRiskDescription = (value: number) => {
+    if (value >= 70) return "High risk portfolio - significant volatility expected";
+    if (value >= 40) return "Moderate risk portfolio - balanced risk and return";
+    return "Low risk portfolio - stable and conservative";
   };
 
   return (
@@ -47,7 +53,7 @@ export const RiskGauge = ({ riskIndex, title }: RiskGaugeProps) => {
           {getRiskLevel(riskIndex)}
         </div>
         <p className="text-sm text-slate-600 mb-6 max-w-xs mx-auto">
-          Higher scores indicate better risk-adjusted performance
+          {getRiskDescription(riskIndex)}
         </p>
         
         {/* Enhanced Risk Index Bar */}
@@ -55,8 +61,8 @@ export const RiskGauge = ({ riskIndex, title }: RiskGaugeProps) => {
           <div className="w-full bg-gradient-to-r from-slate-200 to-slate-300 rounded-full h-4 shadow-inner border border-slate-300/50">
             <div 
               className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
-                riskIndex >= 70 ? 'bg-gradient-to-r from-green-400 to-green-600' : 
-                riskIndex >= 40 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-red-400 to-red-600'
+                riskIndex >= 70 ? 'bg-gradient-to-r from-red-400 to-red-600' : 
+                riskIndex >= 40 ? 'bg-gradient-to-r from-orange-400 to-orange-600' : 'bg-gradient-to-r from-green-400 to-green-600'
               }`}
               style={{ 
                 width: `${Math.min(riskIndex, 100)}%`,
@@ -65,10 +71,9 @@ export const RiskGauge = ({ riskIndex, title }: RiskGaugeProps) => {
             />
           </div>
           <div className="flex justify-between text-xs font-medium text-slate-500 mt-2">
-            <span className="bg-white px-2 py-1 rounded shadow-sm border">0</span>
-            <span className="bg-white px-2 py-1 rounded shadow-sm border">40</span>
-            <span className="bg-white px-2 py-1 rounded shadow-sm border">70</span>
-            <span className="bg-white px-2 py-1 rounded shadow-sm border">100</span>
+            <span className="bg-white px-2 py-1 rounded shadow-sm border">Low</span>
+            <span className="bg-white px-2 py-1 rounded shadow-sm border">Medium</span>
+            <span className="bg-white px-2 py-1 rounded shadow-sm border">High</span>
           </div>
         </div>
       </CardContent>

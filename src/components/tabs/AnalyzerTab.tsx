@@ -3,9 +3,12 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, TrendingUp, RefreshCw, BarChart3 } from "lucide-react";
 import { apiService, BacktestRequest } from "@/services/api";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine, Legend, Label } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine, Legend, Label as ChartLabel } from "recharts";
 
 const DEFAULT_TICKERS = ["AAPL", "TSLA", "NVDA", "ANET"];
 const DEFAULT_WEIGHTS = [0.25, 0.25, 0.25, 0.25];
@@ -146,11 +149,11 @@ const ScenarioHistogram = ({
             dataKey="binLabel"
             tick={{ fontSize: 12 }}
             interval={Math.max(1, Math.floor(histData.length / 8))}
-            label={<Label value="Total Return Over Scenario" offset={-10} position="insideBottom" />}
+            label={<ChartLabel value="Total Return Over Scenario" offset={-10} position="insideBottom" />}
           />
           <YAxis
             tick={{ fontSize: 12 }}
-            label={<Label value="Count" angle={-90} position="insideLeft" />}
+            label={<ChartLabel value="Count" angle={-90} position="insideLeft" />}
           />
           <Tooltip formatter={(value: number) => value} labelFormatter={(label) => `Return: ${label}`}/>
           <Bar
@@ -184,7 +187,7 @@ const ScenarioHistogram = ({
   );
 };
 
-export const AnalyzerTab = () => {
+export const AnalyzerTab = ({ onCreatePortfolio }: { onCreatePortfolio: () => void }) => {
   const [tickersInput, setTickersInput] = useState(DEFAULT_TICKERS.join(", "));
   const [weightsInput, setWeightsInput] = useState(DEFAULT_WEIGHTS.join(", "));
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
@@ -192,6 +195,9 @@ export const AnalyzerTab = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+
+  const tickerList = tickersInput.split(/[,\s]+/).map(t => t.trim().toUpperCase()).filter(t => t.length > 0);
+  const weightList = weightsInput.split(/[,\s]+/).map(w => parseFloat(w.trim()) / 100).filter(w => !isNaN(w));
 
   const handleRunBacktest = async () => {
     setError(null);
@@ -230,15 +236,38 @@ export const AnalyzerTab = () => {
     }
   };
 
+  const handleNewAnalysis = () => {
+    setResult(null);
+    setError(null);
+  };
+
   // Render scenario stress test table and histograms
   const renderScenarioStressTest = () => {
     if (!result) return null;
     return (
-      <div className="space-y-8 mt-8">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-2xl font-bold text-slate-800">Stress Test Results</h3>
+            <p className="text-slate-600">Scenario analysis completed successfully</p>
+          </div>
+          <Button 
+            onClick={handleNewAnalysis}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>New Analysis</span>
+          </Button>
+        </div>
+
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Scenario Stress Test Summary</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Scenario Stress Test Summary
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -267,8 +296,9 @@ export const AnalyzerTab = () => {
             </div>
           </CardContent>
         </Card>
+
         {/* Histograms for each scenario */}
-        <div className="space-y-12">
+        <div className="space-y-6">
           {result.scenarioDistributions?.map((dist: any, i: number) => (
             <Card key={i}>
               <CardHeader>
@@ -291,51 +321,125 @@ export const AnalyzerTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Stock Analyzer Backtester</h2>
-        <p className="text-slate-600 mb-4">Enter your stocks and weights, then run a scenario stress test backtest.</p>
-      </div>
-      <Card className="p-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Backtest Inputs</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="block font-medium mb-1">Stocks (comma or space separated):</label>
-            <Input
-              value={tickersInput}
-              onChange={(e) => setTickersInput(e.target.value)}
-              placeholder="AAPL, TSLA, NVDA, ANET"
-              className="mb-2"
-            />
+      {!result ? (
+        <>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Stress Test Analysis</h2>
+            <p className="text-slate-600">Enter your stocks and weights, then run a scenario stress test backtest</p>
           </div>
-          <div>
-            <label className="block font-medium mb-1">Weights (comma or space separated, will be normalized):</label>
-            <Input
-              value={weightsInput}
-              onChange={(e) => setWeightsInput(e.target.value)}
-              placeholder="0.25, 0.25, 0.25, 0.25"
-              className="mb-2"
-            />
-          </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Start Date:</label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            </div>
-            <div className="flex-1">
-              <label className="block font-medium mb-1">End Date:</label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            </div>
-          </div>
-          <Button onClick={handleRunBacktest} className="w-full mt-2" disabled={loading}>
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-            Run Backtest
-          </Button>
-          {error && <div className="text-red-600 mt-2 text-sm">{error}</div>}
-        </CardContent>
-      </Card>
-      {renderScenarioStressTest()}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Backtest Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="tickers">Stock Tickers (comma-separated)</Label>
+                  <Input
+                    id="tickers"
+                    value={tickersInput}
+                    onChange={(e) => setTickersInput(e.target.value)}
+                    placeholder="AAPL, TSLA, NVDA, ANET"
+                    className="mt-1"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Current tickers: {tickerList.map(t => (
+                      <Badge key={t} variant="secondary" className="mr-1">{t}</Badge>
+                    ))}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="weights">Weights % (comma-separated)</Label>
+                  <Input
+                    id="weights"
+                    value={weightsInput}
+                    onChange={(e) => setWeightsInput(e.target.value)}
+                    placeholder="25, 25, 25, 25"
+                    className="mt-1"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Sum: {weightList.reduce((a, b) => a + b, 0) * 100}% 
+                    {Math.abs(weightList.reduce((a, b) => a + b, 0) - 1) > 0.01 && (
+                      <span className="text-orange-600 ml-1">(will be normalized)</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input 
+                    id="start-date"
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)} 
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Input 
+                    id="end-date"
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => setEndDate(e.target.value)} 
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{tickerList.length}</div>
+                  <div className="text-sm text-gray-600">Stocks</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">Custom</div>
+                  <div className="text-sm text-gray-600">Weights</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">SPY</div>
+                  <div className="text-sm text-gray-600">Benchmark</div>
+                </div>
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-700">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                onClick={handleRunBacktest}
+                disabled={loading || tickerList.length === 0}
+                className="w-full"
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Running Stress Test...
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Run Stress Test
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        renderScenarioStressTest()
+      )}
     </div>
   );
 };

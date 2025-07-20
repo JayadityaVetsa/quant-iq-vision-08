@@ -1,4 +1,5 @@
 
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
@@ -13,15 +14,29 @@ const COLORS = [
   '#82CA9D', '#FFC658', '#FF7C7C', '#8DD1E1', '#D084D0'
 ];
 
-export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
-  const data = Object.entries(weights)
-    .filter(([_, weight]) => weight > 0)
-    .map(([ticker, weight]) => ({
-      name: ticker,
-      value: weight * 100,
-      displayValue: `${(weight * 100).toFixed(1)}%`
-    }))
-    .sort((a, b) => b.value - a.value);
+export const WeightsPieChart = React.memo(({ weights, title }: WeightsPieChartProps) => {
+  // Memoize data transformation for better performance
+  const data = useMemo(() => {
+    return Object.entries(weights)
+      .filter(([_, weight]) => weight > 0)
+      .map(([ticker, weight]) => ({
+        name: ticker,
+        value: weight * 100,
+        displayValue: `${(weight * 100).toFixed(1)}%`
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [weights]);
+
+  // Memoize chart configuration
+  const chartConfig = useMemo(() => {
+    return data.reduce((config, item, index) => {
+      config[item.name] = {
+        label: item.name,
+        color: COLORS[index % COLORS.length]
+      };
+      return config;
+    }, {} as any);
+  }, [data]);
 
   if (data.length === 0) {
     return (
@@ -36,16 +51,8 @@ export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
     );
   }
 
-  const chartConfig = data.reduce((config, item, index) => {
-    config[item.name] = {
-      label: item.name,
-      color: COLORS[index % COLORS.length]
-    };
-    return config;
-  }, {} as any);
-
   return (
-    <Card className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500">
+    <Card className="overflow-hidden bg-gradient-to-br from-white to-slate-50 border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
       <CardHeader className="bg-gradient-to-r from-cyan-50 to-teal-50 border-b border-cyan-100/50">
         <CardTitle className="flex items-center gap-2 text-slate-800">
           <div className="w-2 h-6 bg-gradient-to-b from-cyan-500 to-cyan-600 rounded-full"></div>
@@ -64,6 +71,8 @@ export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
                 outerRadius={100}
                 paddingAngle={2}
                 dataKey="value"
+                animationDuration={1000}
+                animationBegin={0}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -84,4 +93,6 @@ export const WeightsPieChart = ({ weights, title }: WeightsPieChartProps) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+WeightsPieChart.displayName = "WeightsPieChart";

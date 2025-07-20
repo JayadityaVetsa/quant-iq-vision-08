@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { DashboardTab } from "@/components/tabs/DashboardTab";
-import { OptimizerTab } from "@/components/tabs/OptimizerTab";
+import { EfficientFrontierTab } from "@/components/tabs/EfficientFrontierTab";
+import { BlackLittermanTab } from "@/components/tabs/BlackLittermanTab";
 import { AnalyzerTab } from "@/components/tabs/AnalyzerTab";
 import { SimulatorTab } from "@/components/tabs/SimulatorTab";
 import { ManualEntryModal } from "@/components/ManualEntryModal";
@@ -23,8 +24,10 @@ const Index = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab setActiveTab={setActiveTab} />;
-      case "optimizer":
-        return <OptimizerTab onCreatePortfolio={handleCreatePortfolio} />;
+      case "efficient-frontier":
+        return <EfficientFrontierTab onCreatePortfolio={handleCreatePortfolio} />;
+      case "black-litterman":
+        return <BlackLittermanTab onCreatePortfolio={handleCreatePortfolio} />;
       case "analyzer":
         return <AnalyzerTab onCreatePortfolio={handleCreatePortfolio} />;
       case "simulator":
