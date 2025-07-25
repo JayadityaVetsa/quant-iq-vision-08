@@ -1,46 +1,64 @@
-import { useEffect, useRef, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { CheckCircle } from "lucide-react";
 
 export const WelcomeSection = () => {
-  const isMobile = useIsMobile();
-  const [offset, setOffset] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isMobile) return;
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const scrollY = window.scrollY || window.pageYOffset;
-      const top = rect.top + scrollY;
-      const windowHeight = window.innerHeight;
-      const sectionCenter = top + rect.height / 2;
-      const distance = (scrollY + windowHeight / 2) - sectionCenter;
-      setOffset(distance);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isMobile]);
-
-  // Parallax: heading moves slower, subtitle moves a bit faster
-  const headingStyle = isMobile ? {} : { transform: `translateY(${offset * 0.15}px)` };
-  const subtitleStyle = isMobile ? {} : { transform: `translateY(${offset * 0.3}px)` };
+  const userTypes = ["Institutional Investors", "Quantitative Analysts", "Portfolio Managers"];
 
   return (
-    <div ref={containerRef} className="text-center space-y-6 animate-fadein-down relative overflow-visible">
-      <h2
-        className="text-4xl md:text-5xl font-extrabold bg-gradient-to-br from-blue-700 via-blue-400 to-slate-800 bg-clip-text text-transparent tracking-tight mb-4 drop-shadow-lg"
-        style={headingStyle}
+    <div className="text-center py-16 md:py-24 space-y-6 relative overflow-hidden animate-fade-in">
+      <h1 
+        className="text-4xl md:text-5xl font-bold text-gray-700 animate-fade-in-down"
+        style={{ animationDelay: '0.2s' }}
       >
-        Welcome to QuantifyIQ
+        Welcome to
+      </h1>
+      
+      <div 
+        className="w-24 h-1 bg-gradient-to-r from-green-400 to-blue-500 mx-auto rounded-full animate-scale-in"
+        style={{ animationDelay: '0.4s' }}
+      />
+
+      <h2 
+        className="text-2xl md:text-4xl font-semibold text-gray-800 max-w-4xl mx-auto animate-fade-in-down"
+        style={{ animationDelay: '0.6s' }}
+      >
+        Professional portfolio optimization and quantitative risk analysis for
       </h2>
-      <p
-        className="text-xl md:text-2xl text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed"
-        style={subtitleStyle}
+      
+      <div 
+        className="flex justify-center items-center gap-4 flex-wrap animate-fade-in-up"
+        style={{ animationDelay: '0.8s' }}
       >
-        Intuitive portfolio optimization and risk analysis for early investors, students, and retail traders. Get started by creating your portfolio.
+        {userTypes.map((type, index) => (
+          <Button
+            key={type}
+            variant="outline"
+            className="rounded-full text-gray-700 bg-white/50 border-gray-200 hover:bg-white hover:border-gray-400 transition-all duration-300 animate-fade-in-up"
+            style={{ animationDelay: `${0.9 + index * 0.1}s` }}
+          >
+            {type}
+          </Button>
+        ))}
+      </div>
+
+      <p 
+        className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up"
+        style={{ animationDelay: '1.2s' }}
+      >
+        Leverage cutting-edge quantitative models, Monte Carlo simulations, and modern portfolio theory 
+        to make data-driven investment decisions with institutional-grade analytics.
       </p>
+
+      <div 
+        className="animate-fade-in-up"
+        style={{ animationDelay: '1.4s' }}
+      >
+        <Button size="lg" className="rounded-full bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+          <CheckCircle className="w-5 h-5 mr-2" />
+          Ready for institutional-grade portfolio analysis?
+        </Button>
+      </div>
     </div>
   );
 };

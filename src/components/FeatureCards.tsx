@@ -1,78 +1,76 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, TrendingUp, BarChart3 } from "lucide-react";
+import { Sliders, TrendingUp, Target, Brain } from "lucide-react";
 
 interface FeatureCardsProps {
   setActiveTab: (tab: string) => void;
 }
 
 export const FeatureCards = ({ setActiveTab }: FeatureCardsProps) => {
+
   const features = [
     {
-      id: "optimizer",
-      title: "Portfolio Optimizer",
-      description: "EF & Black-Litterman optimization",
-      content: "Analyze your current portfolio with Efficient Frontier and Black-Litterman optimization. Incorporate your market views and confidence levels.",
-      icon: Target,
-      color: "blue",
-      buttonText: "Optimize Portfolio"
+      title: "Efficient Frontier",
+      description: "Optimize your portfolio using Modern Portfolio Theory.",
+      icon: <Target className="w-8 h-8 text-white" />,
+      tab: "efficient-frontier",
+      gradient: "from-blue-500 to-indigo-600"
     },
     {
-      id: "analyzer",
-      title: "Stock Analyzer",
-      description: "Technical & statistical insights",
-      content: "Deep dive into individual stocks with technical indicators, distribution analysis, and ELI18 educational mode.",
-      icon: TrendingUp,
-      color: "green",
-      buttonText: "Analyze Stocks"
+      title: "Black-Litterman",
+      description: "Incorporate your market views into your portfolio.",
+      icon: <Brain className="w-8 h-8 text-white" />,
+      tab: "black-litterman",
+      gradient: "from-green-500 to-emerald-600"
     },
     {
-      id: "simulator",
-      title: "Monte Carlo Simulator",
-      description: "Future outcome forecasting",
-      content: "Run 10,000 simulations to visualize the \"Cone of Possibility\" and understand potential future portfolio outcomes.",
-      icon: BarChart3,
-      color: "red",
-      buttonText: "Run Simulation"
+      title: "Simulator",
+      description: "Forecast future outcomes with Monte Carlo simulations.",
+      icon: <Sliders className="w-8 h-8 text-white" />,
+      tab: "simulator",
+      gradient: "from-purple-500 to-violet-600"
+    },
+    {
+      title: "Stress Test",
+      description: "See how your portfolio weathers historical crises.",
+      icon: <TrendingUp className="w-8 h-8 text-white" />,
+      tab: "analyzer",
+      gradient: "from-red-500 to-rose-600"
     }
   ];
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {features.map((feature) => {
-        const Icon = feature.icon;
-        const isMonteCarlo = feature.id === "simulator";
-        return (
-          <Card
-            key={feature.id}
-            className={`bg-white/60 backdrop-blur-lg border border-slate-200/60 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.03] transition-all duration-400 group overflow-hidden relative`}
-            style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)' }}
+    <div className="py-12 md:py-16">
+      <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-10">
+        Analysis Tools
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {features.map((feature, index) => (
+          <div 
+            key={feature.title}
+            onClick={() => setActiveTab(feature.tab)}
+            className={`
+              p-6 rounded-2xl shadow-lg hover:shadow-2xl 
+              bg-gradient-to-br ${feature.gradient} 
+              text-white cursor-pointer
+              transform hover:-translate-y-2 transition-all duration-300
+              animate-fade-in-up
+            `}
+            style={{ animationDelay: `${0.2 + index * 0.1}s` }}
           >
-            <CardHeader>
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className={`w-6 h-6 text-${feature.color}-600`} />
+            <div className="flex flex-col items-start justify-between h-full">
+              <div>
+                <div className="p-3 bg-white/20 rounded-full mb-4 w-max">
+                  {feature.icon}
                 </div>
-                <div>
-                  <CardTitle className={`${isMonteCarlo ? 'text-sm md:text-base' : 'text-lg'} font-semibold text-slate-900 tracking-tight mb-1 leading-tight`}>{feature.title}</CardTitle>
-                  <CardDescription className="text-base text-slate-500 leading-snug mb-2">{feature.description}</CardDescription>
-                </div>
+                <h4 className="text-xl font-bold mb-2">{feature.title}</h4>
+                <p className="text-sm text-white/80">{feature.description}</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-700 mb-6 text-base leading-relaxed min-h-[56px]">{feature.content}</p>
-              <Button
-                variant="outline"
-                onClick={() => setActiveTab(feature.id)}
-                className="w-full rounded-full font-semibold text-base py-2 bg-white/80 hover:bg-blue-50/80 transition-all duration-300 shadow"
-              >
-                {feature.buttonText}
-              </Button>
-            </CardContent>
-            <div className={`absolute inset-0 pointer-events-none rounded-2xl border-2 border-transparent group-hover:border-${feature.color}-300 transition-all duration-300`}></div>
-          </Card>
-        );
-      })}
+              <button className="mt-6 text-sm font-semibold text-white hover:underline">
+                Analyze Now &rarr;
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

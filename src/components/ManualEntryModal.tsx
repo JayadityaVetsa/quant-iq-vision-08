@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { usePortfolio } from "@/contexts/PortfolioContext";
 import { PortfolioOptimizerService } from "@/utils/portfolioOptimizer";
 
@@ -20,11 +21,12 @@ interface ManualEntryModalProps {
 }
 
 export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => {
+  const [portfolioName, setPortfolioName] = useState("");
   const [stocks, setStocks] = useState<Stock[]>([{ ticker: "", weight: 0 }]);
   const [initialValue, setInitialValue] = useState("10000");
   const [riskFreeRate, setRiskFreeRate] = useState("3.0");
   const { toast } = useToast();
-  const { setPortfolioData, setOptimizationResults, setIsAnalyzing } = usePortfolio();
+  const { setPortfolioData, setOptimizationResults, setIsAnalyzing, createPortfolio, setActivePortfolio } = usePortfolio();
 
   const addStock = () => {
     setStocks([...stocks, { ticker: "", weight: 0 }]);
@@ -45,6 +47,15 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
 
   const handleSubmit = async () => {
     // Validation
+    if (!portfolioName.trim()) {
+      toast({
+        title: "Portfolio name required",
+        description: "Please enter a name for your portfolio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const emptyTickers = stocks.filter(stock => !stock.ticker.trim());
     if (emptyTickers.length > 0) {
       toast({
@@ -74,32 +85,42 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
       return;
     }
 
-    const portfolioData = {
-      stocks: stocks.map(stock => ({
-        ticker: stock.ticker.toUpperCase(),
-        weight: stock.weight / 100 // Convert percentage to decimal
-      })),
-      initialValue: parseFloat(initialValue),
-      riskFreeRate: parseFloat(riskFreeRate) / 100 // Convert percentage to decimal
-    };
+    const portfolioStocks = stocks.map(stock => ({
+      ticker: stock.ticker.toUpperCase(),
+      weight: stock.weight / 100 // Convert percentage to decimal
+    }));
 
     try {
-      setPortfolioData(portfolioData);
+      // Create the new portfolio
+      const newPortfolio = createPortfolio(
+        portfolioName.trim(),
+        portfolioStocks,
+        parseFloat(initialValue),
+        parseFloat(riskFreeRate) / 100
+      );
+
+      // Set it as the active portfolio
+      setActivePortfolio(newPortfolio);
+      
       setIsAnalyzing(true);
       onClose();
 
-      toast({
-        title: "Portfolio analysis started",
-        description: "Optimizing your portfolio and fetching market data...",
+      sonnerToast.success(`Portfolio "${portfolioName}" created successfully!`, {
+        description: "Your portfolio has been set as the active portfolio.",
       });
 
-      // Run the optimization
+      // Run the optimization with legacy support
+      const portfolioData = {
+        stocks: portfolioStocks,
+        initialValue: parseFloat(initialValue),
+        riskFreeRate: parseFloat(riskFreeRate) / 100
+      };
+
       const results = await PortfolioOptimizerService.optimizePortfolio(portfolioData);
       setOptimizationResults(results);
       
-      toast({
-        title: "Analysis complete!",
-        description: `Portfolio with ${stocks.length} stocks analyzed successfully.`,
+      sonnerToast.success("Analysis complete!", {
+        description: `Portfolio "${portfolioName}" analyzed successfully.`,
       });
 
     } catch (error) {
@@ -115,7 +136,10 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
   };
 
   const handleClose = () => {
+    setPortfolioName("");
     setStocks([{ ticker: "", weight: 0 }]);
+    setInitialValue("10000");
+    setRiskFreeRate("3.0");
     onClose();
   };
 
@@ -135,6 +159,18 @@ export const ManualEntryModal = ({ isOpen, onClose }: ManualEntryModalProps) => 
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Portfolio Name */}
+          <div className="space-y-2">
+            <Label htmlFor="portfolio-name">Portfolio Name</Label>
+            <Input
+              id="portfolio-name"
+              value={portfolioName}
+              onChange={(e) => setPortfolioName(e.target.value)}
+              placeholder="My Tech Portfolio"
+              className="font-medium"
+            />
+          </div>
+
           {/* Portfolio Value */}
           <div className="space-y-2">
             <Label htmlFor="initial-value">Initial Portfolio Value ($)</Label>

@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { usePortfolio } from "@/contexts/PortfolioContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -188,13 +189,23 @@ const ScenarioHistogram = ({
 };
 
 export const AnalyzerTab = ({ onCreatePortfolio }: { onCreatePortfolio: () => void }) => {
-  const [tickersInput, setTickersInput] = useState(DEFAULT_TICKERS.join(", "));
-  const [weightsInput, setWeightsInput] = useState(DEFAULT_WEIGHTS.join(", "));
+  const { activePortfolio } = usePortfolio();
+
+  const [tickersInput, setTickersInput] = useState(() => activePortfolio ? activePortfolio.stocks.map(s => s.ticker).join(", ") : DEFAULT_TICKERS.join(", "));
+  const [weightsInput, setWeightsInput] = useState(() => activePortfolio ? activePortfolio.stocks.map(s => (s.weight * 100).toFixed(2)).join(", ") : DEFAULT_WEIGHTS.map(w => w*100).join(", "));
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
   const [endDate, setEndDate] = useState(DEFAULT_END_DATE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+
+  // Synchronize with active portfolio changes
+  useEffect(() => {
+    if (activePortfolio) {
+      setTickersInput(activePortfolio.stocks.map(s => s.ticker).join(", "));
+      setWeightsInput(activePortfolio.stocks.map(s => (s.weight * 100).toFixed(2)).join(", "));
+    }
+  }, [activePortfolio]);
 
   const tickerList = tickersInput.split(/[,\s]+/).map(t => t.trim().toUpperCase()).filter(t => t.length > 0);
   const weightList = weightsInput.split(/[,\s]+/).map(w => parseFloat(w.trim()) / 100).filter(w => !isNaN(w));
@@ -326,6 +337,14 @@ export const AnalyzerTab = ({ onCreatePortfolio }: { onCreatePortfolio: () => vo
           <div className="text-center">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Stress Test Analysis</h2>
             <p className="text-slate-600">Enter your stocks and weights, then run a scenario stress test backtest</p>
+            {activePortfolio && (
+              <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-200">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-xs sm:text-sm text-blue-700">
+                  Using active portfolio: <strong>{activePortfolio.name}</strong>
+                </span>
+              </div>
+            )}
           </div>
 
           <Card>

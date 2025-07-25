@@ -1,28 +1,39 @@
-import { WelcomeSection } from "@/components/WelcomeSection";
-import { QuickStats } from "@/components/QuickStats";
-import { FeatureCards } from "@/components/FeatureCards";
-import { MetricsCard } from "@/components/MetricsCard";
-import { FeatureSquare } from "../ui/feature-square";
+import { WelcomeSection } from "../WelcomeSection";
+import { FeatureCards } from "../FeatureCards";
+import { usePortfolio } from "@/contexts/PortfolioContext";
+import { Button } from "../ui/button";
+import { PortfolioOverview } from "../PortfolioOverview";
 
 interface DashboardTabProps {
   setActiveTab: (tab: string) => void;
+  onCreatePortfolio: () => void;
 }
 
-export const DashboardTab = ({ setActiveTab }: DashboardTabProps) => {
+export const DashboardTab = ({ setActiveTab, onCreatePortfolio }: DashboardTabProps) => {
+  const { portfolios, activePortfolio } = usePortfolio();
+
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col gap-16 py-10 md:py-16">
-      <FeatureSquare section="welcome">
-        <WelcomeSection />
-      </FeatureSquare>
-      <FeatureSquare section="quickstats">
-        <QuickStats />
-      </FeatureSquare>
-      <FeatureSquare section="features">
-        <FeatureCards setActiveTab={setActiveTab} />
-      </FeatureSquare>
-      <FeatureSquare section="metrics">
-        <MetricsCard />
-      </FeatureSquare>
+    <div className="space-y-12">
+      <WelcomeSection />
+
+      {portfolios.length > 0 && activePortfolio ? (
+        <>
+          <PortfolioOverview />
+          <FeatureCards setActiveTab={setActiveTab} />
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Get Started by Creating Your First Portfolio
+          </h3>
+          <p className="text-gray-600 mb-8">
+            Once you create a portfolio, you'll see all available analysis tools here.
+          </p>
+          <Button onClick={onCreatePortfolio} size="lg">
+            Create Portfolio
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

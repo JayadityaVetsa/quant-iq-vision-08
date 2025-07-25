@@ -1,16 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiService, MonteCarloRequest, MonteCarloResponse } from "@/services/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, GripVertical } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Area, AreaChart, Legend, BarChart, Bar, Cell, Line as ReLine, ReferenceLine, CartesianGrid } from "recharts";
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Area, AreaChart, Legend, BarChart, Bar, Line as ReLine, ReferenceLine, CartesianGrid } from "recharts";
+import { usePortfolio } from "@/contexts/PortfolioContext";
 
 const DEFAULT_TICKERS = ["AAPL", "TSLA", "NVDA", "ANET"];
 const DEFAULT_WEIGHTS = Array(4).fill(0.25);
@@ -91,36 +88,10 @@ const CARD_KEYS = [
   "finalDist"
 ];
 
-function DraggableCard({ id, children }: { id: string; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition ? transition + ', box-shadow 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1)' : undefined,
-    zIndex: isDragging ? 50 : 1,
-    boxShadow: isDragging ? "0 12px 32px 0 rgba(31,38,135,0.18)" : "0 4px 16px 0 rgba(31,38,135,0.08)",
-    opacity: isDragging ? 0.97 : 1,
-    borderRadius: '1.25rem',
-    background: isDragging ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.96)',
-    border: '1.5px solid #e5e7eb',
-    scale: isDragging ? '1.03' : '1',
-  };
-  return (
-    <div ref={setNodeRef} style={style} className="mb-10 transition-all duration-300">
-      <div className={clsx(
-        "flex items-center gap-2 px-4 py-2 cursor-grab select-none rounded-t-2xl bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200",
-        isDragging ? "shadow-lg" : "shadow-sm"
-      )} {...attributes} {...listeners}>
-        <GripVertical className="w-6 h-6 text-slate-400" />
-        <span className={clsx("text-xs text-slate-400 font-medium transition-opacity duration-200", isDragging ? "opacity-0" : "opacity-100")}>Drag to reorder</span>
-      </div>
-      <div className="p-2 md:p-4">{children}</div>
-    </div>
-  );
-}
-
 export const MonteCarloTab: React.FC = () => {
-  const [tickers, setTickers] = useState<string[]>([...DEFAULT_TICKERS]);
-  const [weights, setWeights] = useState<number[]>([...DEFAULT_WEIGHTS]);
+  const { activePortfolio } = usePortfolio();
+  const [tickers, setTickers] = useState<string[]>(() => activePortfolio ? activePortfolio.stocks.map(s => s.ticker) : [...DEFAULT_TICKERS]);
+  const [weights, setWeights] = useState<number[]>(() => activePortfolio ? activePortfolio.stocks.map(s => s.weight) : [...DEFAULT_WEIGHTS]);
   const [benchmark, setBenchmark] = useState<string>(DEFAULT_BENCHMARK);
   const [startDate, setStartDate] = useState<string>(DEFAULT_START_DATE);
   const [endDate, setEndDate] = useState<string>(DEFAULT_END_DATE);
@@ -130,7 +101,15 @@ export const MonteCarloTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MonteCarloResponse | null>(null);
-  const [cardOrder, setCardOrder] = useState(CARD_KEYS);
+  const [cardOrder] = useState(CARD_KEYS);
+
+  // Update tickers and weights if active portfolio changes
+  useEffect(() => {
+    if (activePortfolio) {
+      setTickers(activePortfolio.stocks.map(s => s.ticker));
+      setWeights(activePortfolio.stocks.map(s => s.weight));
+    }
+  }, [activePortfolio]);
 
   const handleTickerChange = (index: number, value: string) => {
     const newTickers = [...tickers];
@@ -547,14 +526,7 @@ export const MonteCarloTab: React.FC = () => {
     </Card>
   );
 
-  // DnD setup
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over?.id) {
-      setCardOrder((items) => arrayMove(items, items.indexOf(active.id), items.indexOf(over.id)));
-    }
-  };
+  /* Drag-and-drop removed to ensure consistency across pages */
 
   // Map keys to renderers
   const cardMap: Record<string, () => React.ReactNode> = {
@@ -642,15 +614,11 @@ export const MonteCarloTab: React.FC = () => {
           )}
         </CardContent>
       </Card>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
-          {cardOrder.map((key) => (
-            <DraggableCard key={key} id={key}>
-              {cardMap[key]()}
-            </DraggableCard>
-          ))}
-        </SortableContext>
-      </DndContext>
+      <div className="space-y-10">
+        {cardOrder.map((key) => (
+          <div key={key}>{cardMap[key]()}</div>
+        ))}
+      </div>
     </div>
   );
 }; 

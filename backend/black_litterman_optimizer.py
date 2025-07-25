@@ -225,7 +225,7 @@ class EnhancedBlackLittermanOptimizer:
             cov_array = self.cov_matrix.values
             weights_array = market_weights.reindex(self.tickers).values
 
-            implied_excess = risk_aversion * np.dot(cov_array, weights_array)
+            implied_excess = risk_aversion * np.dot(cov_array, np.asarray(weights_array))
 
             # Convert to absolute returns by adding risk-free rate
             self.implied_returns = pd.Series(

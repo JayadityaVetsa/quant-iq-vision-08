@@ -2,6 +2,26 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
+def safe_float(value):
+    """Convert value to float, replacing NaN/inf with 0.0 for JSON serialization"""
+    try:
+        if pd.isna(value) or np.isinf(value):
+            return 0.0
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+def safe_dict(d):
+    """Recursively clean dictionary of NaN values for JSON serialization"""
+    if isinstance(d, dict):
+        return {k: safe_dict(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        return [safe_dict(item) for item in d]
+    elif isinstance(d, (int, float, np.integer, np.floating)):
+        return safe_float(d)
+    else:
+        return d
+
 # =============================
 # SECTION 1: CONFIGURABLE DEFAULTS
 # =============================
@@ -53,9 +73,9 @@ def calculate_metrics_and_charts(price_data, log_returns, tickers, weights, benc
     annual_vol = portfolio_returns.std() * np.sqrt(252)
     var_6mo = annual_vol * np.sqrt(0.5) * 1.645
     risk_index = np.interp(var_6mo, [0.02, 0.05, 0.12, 0.18, 0.25, 0.35], [20, 35, 60, 80, 90, 95])
-    risk_index = float(np.clip(risk_index, 1, 99))
+    risk_index = safe_float(np.clip(risk_index, 1, 99))
     # Weights Pie Chart
-    weights_dict = {t: float(w) for t, w in zip(tickers, weights)}
+    weights_dict = {t: safe_float(w) for t, w in zip(tickers, weights)}
     # Min Volatility Portfolio (naive: lowest std dev single asset)
     min_vol_idx = np.argmin([log_returns_user[t].std() for t in tickers])
     min_vol_weights = np.zeros(len(tickers))
@@ -65,10 +85,10 @@ def calculate_metrics_and_charts(price_data, log_returns, tickers, weights, benc
     min_vol_annual_ret = np.exp(min_vol_returns.mean() * 252) - 1
     min_vol_sharpe = (min_vol_annual_ret - risk_free_rate) / min_vol_annual_vol
     min_vol_chart = {
-        'weights': {t: float(w) for t, w in zip(tickers, min_vol_weights)},
-        'annual_vol': float(min_vol_annual_vol),
-        'annual_ret': float(min_vol_annual_ret),
-        'sharpe': float(min_vol_sharpe)
+        'weights': {t: safe_float(w) for t, w in zip(tickers, min_vol_weights)},
+        'annual_vol': safe_float(min_vol_annual_vol),
+        'annual_ret': safe_float(min_vol_annual_ret),
+        'sharpe': safe_float(min_vol_sharpe)
     }
     # Efficient Frontier (simulate random portfolios)
     n_points = 50
@@ -77,28 +97,29 @@ def calculate_metrics_and_charts(price_data, log_returns, tickers, weights, benc
         w = np.random.dirichlet(np.ones(len(tickers)), 1)[0]
         ret = np.exp((log_returns_user[tickers] * w).sum(axis=1).mean() * 252) - 1
         vol = (log_returns_user[tickers] * w).sum(axis=1).std() * np.sqrt(252)
-        ef_data.append({'weights': {t: float(wi) for t, wi in zip(tickers, w)}, 'annual_ret': float(ret), 'annual_vol': float(vol)})
+        ef_data.append({'weights': {t: safe_float(wi) for t, wi in zip(tickers, w)}, 'annual_ret': safe_float(ret), 'annual_vol': safe_float(vol)})
     # Comparison Chart Data
     annual_ret = np.exp(portfolio_returns.mean() * 252) - 1
     sharpe = (annual_ret - risk_free_rate) / annual_vol
     comparison = {
         'currentPortfolio': {
             'weights': weights_dict,
-            'annual_ret': float(annual_ret),
-            'annual_vol': float(annual_vol),
-            'sharpe': float(sharpe),
+            'annual_ret': safe_float(annual_ret),
+            'annual_vol': safe_float(annual_vol),
+            'sharpe': safe_float(sharpe),
             'riskIndex': risk_index
         },
         'minVolatilityPortfolio': min_vol_chart,
         'efficientFrontier': ef_data
     }
-    return {
+    result = {
         'riskIndex': risk_index,
         'weights': weights_dict,
         'minVolatility': min_vol_chart,
         'efficientFrontier': ef_data,
         'comparison': comparison
     }
+    return safe_dict(result)
 
 SCENARIO_EVENTS = [
     {"label": "1987 Black Monday", "start": "1987-10-01", "end": "1987-11-30"},
@@ -150,14 +171,14 @@ def scenario_stress_test(price_data, log_returns, tickers, weights, benchmark, s
                 "Event": event["label"],
                 "Scenario Length (days)": sim_len,
                 "Stocks Used": ", ".join(available_tickers),
-                "Portfolio Mean Return": float(np.mean(drawdown)),
-                "Benchmark Return": float(bench_drawdown),
+                "Portfolio Mean Return": safe_float(np.mean(drawdown)),
+                "Benchmark Return": safe_float(bench_drawdown),
             })
             scenarioDistributions.append({
                 "eventLabel": f"Stress Test: {event['label']} ({sim_len}d, {len(available_tickers)} stocks)",
-                "returns": drawdown.tolist(),
-                "portfolioMean": float(np.mean(drawdown)),
-                "benchmark": float(bench_drawdown)
+                "returns": [safe_float(x) for x in drawdown.tolist()],
+                "portfolioMean": safe_float(np.mean(drawdown)),
+                "benchmark": safe_float(bench_drawdown)
             })
         except Exception as e:
             print(f"Skipping scenario {event['label']} due to error: {e}")

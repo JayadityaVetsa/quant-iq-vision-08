@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, RefreshCw, BarChart3 } from "lucide-react";
-import React, { useState } from 'react';
+import { Target, RefreshCw, BarChart3, AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,18 +14,31 @@ import { EfficientFrontierChart } from "@/components/portfolio/EfficientFrontier
 import { MetricsTable } from "@/components/portfolio/MetricsTable";
 import { WeightsPieChart } from "@/components/portfolio/WeightsPieChart";
 import { RiskGauge } from "@/components/portfolio/RiskGauge";
+import { usePortfolio } from "@/contexts/PortfolioContext";
 
 interface EfficientFrontierTabProps {
   onCreatePortfolio: () => void;
 }
 
 export const EfficientFrontierTab = ({ onCreatePortfolio }: EfficientFrontierTabProps) => {
+  const { activePortfolio } = usePortfolio();
+  
   // EF specific state - using EFT backend
   const [mptTickers, setMptTickers] = useState<string>('AAPL,MSFT,GOOGL,NVDA');
   const [mptWeights, setMptWeights] = useState<string>('25,25,25,25');
   const [mptLoading, setMptLoading] = useState<boolean>(false);
   const [mptResults, setMptResults] = useState<EFTResponse | null>(null);
   const [mptError, setMptError] = useState<string>('');
+
+  // Auto-populate from active portfolio
+  useEffect(() => {
+    if (activePortfolio) {
+      const tickers = activePortfolio.stocks.map(s => s.ticker).join(',');
+      const weights = activePortfolio.stocks.map(s => (s.weight * 100).toFixed(1)).join(',');
+      setMptTickers(tickers);
+      setMptWeights(weights);
+    }
+  }, [activePortfolio]);
 
   const mptTickerList = mptTickers.split(',').map(t => t.trim().toUpperCase()).filter(t => t.length > 0);
   const mptWeightList = mptWeights.split(',').map(w => parseFloat(w.trim()) / 100).filter(w => !isNaN(w));
@@ -156,13 +169,50 @@ export const EfficientFrontierTab = ({ onCreatePortfolio }: EfficientFrontierTab
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Efficient Frontier Analysis</h2>
-        <p className="text-slate-600">Optimize your portfolio using Modern Portfolio Theory and Efficient Frontier analysis</p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Target className="w-6 h-6 text-white" />
+          </div>
+          <div className="text-left">
+            <h1 className="text-3xl font-bold text-foreground">Efficient Frontier Analysis</h1>
+            <p className="text-muted-foreground">Optimize your portfolio using Modern Portfolio Theory</p>
+          </div>
+        </div>
+        {activePortfolio && (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-sm text-blue-700">
+              Using active portfolio: <strong>{activePortfolio.name}</strong>
+            </span>
+          </div>
+        )}
       </div>
 
-      {mptResults ? (
+      {!activePortfolio ? (
+        // No Active Portfolio State
+        <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Active Portfolio</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create a portfolio first to run Efficient Frontier analysis. The analysis will automatically use your portfolio's stocks and weights as the starting point.
+                </p>
+                <Button onClick={onCreatePortfolio} className="gap-2">
+                  <Target className="w-4 h-4" />
+                  Create Portfolio
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : mptResults ? (
         // Show EF Results using EFT backend
         <div className="space-y-6">
           <div className="flex justify-between items-center">
