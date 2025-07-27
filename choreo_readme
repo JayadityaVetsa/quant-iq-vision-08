@@ -1,0 +1,193 @@
+Of course! Deploying a full-stack application like Quant IQ Vision on Choreo is a great way to get it running in the cloud. Choreo is designed to handle this kind of multi-component architecture seamlessly.
+
+Here is a detailed, step-by-step guide to get your FastAPI backend and React frontend deployed and connected on Choreo.
+
+Phase 1: Pre-Deployment Setup
+
+Before you begin, make sure you've completed these steps:
+
+Choreo Account: Sign up for a free Choreo account at console.choreo.dev.
+
+GitHub Repository: Push your quant-iq-vision-08 project to a GitHub repository. Choreo will need access to this repository to build and deploy your application.
+
+Phase 2: Create a Project in Choreo
+
+First, we'll create a project in Choreo to house our two components (backend and frontend).
+
+Log in to your Choreo console.
+
+On the "All Projects" page, click the + Create button.
+
+Enter a Project Name (e.g., quant-iq-vision) and an optional description, then click Create.
+
+You will now be inside your new project's dashboard, ready to create your components.
+
+Phase 3: Deploy the FastAPI Backend Component
+
+We'll start by deploying the backend service.
+
+In your project view, under "Component Listing," click + Create.
+
+Select the Service component type.
+
+Click Continue with GitHub. You may need to authorize Choreo to access your GitHub account.
+
+Select your GitHub organization/account and the quant-iq-vision-08 repository.
+
+Configure Repository Details:
+
+Branch: Select your main branch (e.g., main or master).
+
+Component Directory: This is a crucial step for a monorepo. Click Edit, select the backend folder, and click Continue. This tells Choreo that this component's code lives in the /backend directory.
+
+Configure Build Details:
+
+Choreo will detect this as a Python project.
+
+Component Name: Give it a name like backend.
+
+Build Preset: Select Python.
+
+Language Version: Choose a version that matches your project (e.g., 3.11.x).
+
+Run Command: Enter the command to start your ASGI server.
+
+Generated bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+Click Create and Deploy. Choreo will now start building your backend service.
+
+Adding Backend Environment Variables
+
+While it's building, let's add the environment variables from your .env file.
+
+In the left navigation menu of your backend component, go to the Deploy tab.
+
+Under "Configurations," find Manage Configs and Secrets and click the edit icon.
+
+Click + Add a Configuration for each variable in your backend/.env file.
+
+Enter the variable Name (e.g., OPENAI_API_KEY).
+
+Enter the Value.
+
+Mark sensitive information like API keys as a Secret.
+
+Once all variables are added, click Save and Deploy to apply the new configurations.
+
+Phase 4: Deploy the React Frontend Component
+
+Now, let's deploy the React web application.
+
+Navigate back to your project's overview page by clicking the project name at the top.
+
+Click + Create again to add a new component.
+
+This time, select the Web Application component type.
+
+Select "Continue with GitHub" and choose the same repository (quant-iq-vision-08).
+
+Configure Repository Details:
+
+Branch: Select main.
+
+Component Directory: Leave this as / since your package.json and Vite config are at the root of the repository.
+
+Configure Build Details:
+
+Component Name: frontend.
+
+Build Preset: Select React.
+
+Node Version: Choose a version that matches your project (e.g., 20.x.x).
+
+Build Command: npm run build
+
+Build Path: /dist (This is the default output directory for Vite).
+
+Click Create and Deploy. Choreo will begin building your React application.
+
+Phase 5: Connect Frontend to Backend
+
+Once both components are deployed, we need to connect them so the frontend can make API calls to the backend. Choreo makes this easy and secure.
+
+In the Choreo console, navigate to your frontend component.
+
+In the left menu, click on the Connections tab.
+
+Click + Create a connection to any service deployed in Choreo.
+
+You will see a list of available services in your project. Select the backend service you deployed earlier.
+
+Configure the Connection:
+
+Name: Give the connection a name, for example, backend-api.
+
+Click Create.
+
+Update Frontend Code:
+
+Choreo will now provide instructions on how to use the connection. The most important part is the Service URL. It will look something like this: /choreo-apis/quant-iq-vision/backend/v1.
+
+This URL acts as a secure, internal proxy to your backend.
+
+In your React application's code, you need to use this URL as the base for your API calls when in production. A good way to do this is with environment variables.
+
+Modify your API service file (e.g., src/services/apiClient.ts or wherever you define your base URL).
+
+Generated typescript
+// Example: src/services/apiClient.ts
+
+// Vite exposes env variables via import.meta.env
+// The VITE_API_BASE_URL will be provided by Choreo's connection.
+// For local development, it will be undefined, and we'll fall back to the proxy path.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
+export const apiClient = {
+  getHealth: async () => {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    return response.json();
+  },
+  analyzePortfolio: async (data: any) => {
+    const response = await fetch(`${API_BASE_URL}/api/portfolio/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  // ... other functions
+};
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+TypeScript
+IGNORE_WHEN_COPYING_END
+
+Set the Frontend Environment Variable:
+
+Go back to the frontend component's Deploy tab in Choreo.
+
+Go to Manage Configs and Secrets.
+
+Add a new environment variable:
+
+Name: VITE_API_BASE_URL
+
+Value: Paste the full Service URL that Choreo provided in the connection step (e.g., /choreo-apis/quant-iq-vision/backend/v1).
+
+Click Save and Deploy.
+
+This will trigger a new deployment for your frontend. Once it's complete, your React app will be configured to send API requests to the correct, secure Choreo endpoint for your backend.
+
+Phase 6: Final Verification
+
+Navigate to the Overview tab of your frontend component.
+
+Click on the Web App URL to open your live application.
+
+Test the functionality. Your portfolio analysis requests should now be successfully routed to your FastAPI backend, and everything should work as expected.
+
+Congratulations! You have successfully deployed your full-stack React and FastAPI application on Choreo.
